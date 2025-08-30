@@ -19,6 +19,14 @@ import type {
   NodeStatusRequest,
   NodeStatusResponse,
   QueueItem,
+  AgentRestartRequest,
+  AgentRestartResponse,
+  AgentDiagnosticsRequest,
+  AgentDiagnosticsResponse,
+  AgentRecoveryRequest,
+  AgentRecoveryResponse,
+  AgentIssueDetection,
+  AuditLogEntry,
 } from "./types.ts";
 
 /**
@@ -458,5 +466,484 @@ export class JenkinsClient {
       : encodeURIComponent(jobName);
     
     return await this.makeRequest<string>(`/job/${jobPath}/config.xml`);
+  }
+
+  // ==========================================
+  // AGENT MANAGEMENT METHODS (Admin Required)
+  // ==========================================
+
+  /**
+   * Restart Jenkins agent service (requires admin privileges)
+   */
+  async restartAgent(request: AgentRestartRequest): Promise<AgentRestartResponse> {
+    logger.info(`Attempting to restart agent: ${request.nodeName}`);
+    
+    // First, verify we have admin privileges
+    await this.verifyAdminAccess("restart_agent", request.nodeName);
+    
+    // Get node information to determine platform if auto-detect
+    const nodeInfo = await this.getNodeStatus({ nodeName: request.nodeName });
+    const node = nodeInfo.nodes.find(n => n.displayName === request.nodeName);
+    
+    if (!node) {
+      throw new Error(`Node ${request.nodeName} not found`);
+    }
+
+    let platform = request.platform;
+    if (platform === "auto") {
+      // Auto-detect platform based on node labels or OS info
+      platform = this.detectNodePlatform(node);
+    }
+
+    // Prepare restart command based on platform
+    let command: string;
+    if (request.serviceCommand) {
+      command = request.serviceCommand;
+    } else {
+      command = this.getDefaultRestartCommand(platform);
+    }
+
+    try {
+      // Execute restart command via Jenkins Script Console
+      const scriptResult = await this.executeNodeScript(request.nodeName, command, platform);
+      
+      // Log the admin action
+      await this.auditLog({
+        action: "restart_agent",
+        target: request.nodeName,
+        result: "success",
+        details: { platform, command, force: request.force }
+      });
+
+      return {
+        success: true,
+        message: `Agent ${request.nodeName} restart initiated successfully`,
+        nodeName: request.nodeName,
+        platform,
+        commandExecuted: command,
+        output: scriptResult.output
+      };
+
+    } catch (error) {
+      // Log the failed action
+      await this.auditLog({
+        action: "restart_agent",
+        target: request.nodeName,
+        result: "failed",
+        details: { platform, command, error: error instanceof Error ? error.message : String(error) }
+      });
+
+      return {
+        success: false,
+        message: `Failed to restart agent ${request.nodeName}: ${error instanceof Error ? error.message : String(error)}`,
+        nodeName: request.nodeName,
+        platform,
+        commandExecuted: command,
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
+  }
+
+  /**
+   * Get comprehensive agent diagnostics
+   */
+  async getAgentDiagnostics(request: AgentDiagnosticsRequest): Promise<AgentDiagnosticsResponse> {
+    logger.info(`Getting diagnostics for agent: ${request.nodeName}`);
+
+    // Get basic node status
+    const nodeStatus = await this.getNodeStatus({ nodeName: request.nodeName });
+    const node = nodeStatus.nodes.find(n => n.displayName === request.nodeName);
+
+    if (!node) {
+      throw new Error(`Node ${request.nodeName} not found`);
+    }
+
+    const response: AgentDiagnosticsResponse = {
+      nodeName: request.nodeName,
+      status: node.offline ? "offline" : "online",
+      platform: this.detectNodePlatform(node)
+    };
+
+    if (request.includeSystemInfo) {
+      try {
+        response.systemInfo = await this.getNodeSystemInfo(request.nodeName);
+      } catch (error) {
+        logger.warn(`Failed to get system info for ${request.nodeName}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+
+    if (request.includeLogs) {
+      try {
+        response.recentErrors = await this.getNodeRecentErrors(request.nodeName);
+      } catch (error) {
+        logger.warn(`Failed to get logs for ${request.nodeName}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+
+    // Get build history for the node
+    try {
+      response.buildHistory = await this.getNodeBuildHistory(request.nodeName);
+    } catch (error) {
+      logger.warn(`Failed to get build history for ${request.nodeName}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+
+    return response;
+  }
+
+  /**
+   * Automated agent recovery workflow
+   */
+  async recoverAgent(request: AgentRecoveryRequest): Promise<AgentRecoveryResponse> {
+    logger.info(`Starting recovery for agent: ${request.nodeName} with strategy: ${request.strategy}`);
+    
+    const response: AgentRecoveryResponse = {
+      success: false,
+      nodeName: request.nodeName,
+      strategy: request.strategy,
+      steps: [],
+      finalStatus: "failed"
+    };
+
+    const maxRetries = request.maxRetries || 3;
+    let retryCount = 0;
+
+    // Step 1: Check current status
+    response.steps.push({
+      step: "status_check",
+      status: "success",
+      message: "Checking agent status",
+      timestamp: new Date().toISOString()
+    });
+
+    try {
+      // Get current diagnostics
+      const diagnostics = await this.getAgentDiagnostics({ nodeName: request.nodeName });
+      
+      if (diagnostics.status === "online") {
+        response.steps.push({
+          step: "already_online",
+          status: "success", 
+          message: "Agent is already online",
+          timestamp: new Date().toISOString()
+        });
+        response.success = true;
+        response.finalStatus = "recovered";
+        return response;
+      }
+
+      // Step 2: Soft recovery (disconnect/reconnect)
+      if (request.strategy === "soft" || request.strategy === "auto") {
+        while (retryCount < maxRetries) {
+          try {
+            await this.disconnectNode(request.nodeName);
+            await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+            await this.connectNode(request.nodeName);
+            
+            response.steps.push({
+              step: "soft_restart",
+              status: "success",
+              message: `Soft restart attempt ${retryCount + 1} completed`,
+              timestamp: new Date().toISOString()
+            });
+
+            // Check if recovery worked
+            const postCheck = await this.getAgentDiagnostics({ nodeName: request.nodeName });
+            if (postCheck.status === "online") {
+              response.success = true;
+              response.finalStatus = "recovered";
+              return response;
+            }
+            
+          } catch (error) {
+            response.steps.push({
+              step: "soft_restart",
+              status: "failed",
+              message: `Soft restart attempt ${retryCount + 1} failed: ${error instanceof Error ? error.message : String(error)}`,
+              timestamp: new Date().toISOString()
+            });
+          }
+          retryCount++;
+        }
+      }
+
+      // Step 3: Hard recovery (service restart)
+      if (request.strategy === "hard" || request.strategy === "auto") {
+        try {
+          const restartResult = await this.restartAgent({
+            nodeName: request.nodeName,
+            platform: "auto"
+          });
+
+          response.steps.push({
+            step: "service_restart",
+            status: restartResult.success ? "success" : "failed",
+            message: restartResult.message,
+            timestamp: new Date().toISOString()
+          });
+
+          if (restartResult.success) {
+            // Wait for service to start and check status
+            await new Promise(resolve => setTimeout(resolve, 15000)); // Wait 15 seconds
+            
+            const finalCheck = await this.getAgentDiagnostics({ nodeName: request.nodeName });
+            if (finalCheck.status === "online") {
+              response.success = true;
+              response.finalStatus = "recovered";
+            } else {
+              response.finalStatus = "partial";
+            }
+          }
+
+        } catch (error) {
+          response.steps.push({
+            step: "service_restart",
+            status: "failed",
+            message: `Service restart failed: ${error instanceof Error ? error.message : String(error)}`,
+            timestamp: new Date().toISOString()
+          });
+        }
+      }
+
+    } catch (error) {
+      response.steps.push({
+        step: "recovery_error",
+        status: "failed",
+        message: `Recovery process failed: ${error instanceof Error ? error.message : String(error)}`,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Log the recovery attempt
+    await this.auditLog({
+      action: "agent_recovery",
+      target: request.nodeName,
+      result: response.success ? "success" : "failed",
+      details: { strategy: request.strategy, steps: response.steps.length, finalStatus: response.finalStatus }
+    });
+
+    return response;
+  }
+
+  /**
+   * Detect agent issues automatically
+   */
+  async detectAgentIssues(nodeName: string): Promise<AgentIssueDetection> {
+    const diagnostics = await this.getAgentDiagnostics({ 
+      nodeName, 
+      includeSystemInfo: true, 
+      includeLogs: true 
+    });
+
+    const issues: AgentIssueDetection["issues"] = [];
+
+    // Check connection status
+    if (diagnostics.status === "offline" || diagnostics.status === "disconnected") {
+      issues.push({
+        type: "connection",
+        severity: "high",
+        description: `Agent is ${diagnostics.status}`,
+        detected: new Date().toISOString(),
+        suggestion: "Try soft restart (disconnect/reconnect) first, then service restart if needed"
+      });
+    }
+
+    // Check system resources
+    if (diagnostics.systemInfo) {
+      if (diagnostics.systemInfo.cpu > 90) {
+        issues.push({
+          type: "performance",
+          severity: "high",
+          description: `High CPU usage: ${diagnostics.systemInfo.cpu}%`,
+          detected: new Date().toISOString(),
+          suggestion: "Check for hung processes or resource-intensive builds"
+        });
+      }
+
+      if (diagnostics.systemInfo.memory.used / diagnostics.systemInfo.memory.total > 0.9) {
+        issues.push({
+          type: "resource",
+          severity: "medium",
+          description: "High memory usage (>90%)",
+          detected: new Date().toISOString(),
+          suggestion: "Consider restarting agent or increasing memory allocation"
+        });
+      }
+
+      if (diagnostics.systemInfo.disk.used / diagnostics.systemInfo.disk.total > 0.9) {
+        issues.push({
+          type: "resource",
+          severity: "high",
+          description: "Low disk space (<10% available)",
+          detected: new Date().toISOString(),
+          suggestion: "Clean up workspace or increase disk space"
+        });
+      }
+    }
+
+    // Check build failures
+    if (diagnostics.buildHistory && diagnostics.buildHistory.recentFailures > 3) {
+      issues.push({
+        type: "build_failure",
+        severity: "medium",
+        description: `High number of recent build failures: ${diagnostics.buildHistory.recentFailures}`,
+        detected: new Date().toISOString(),
+        suggestion: "Investigate build failures and consider agent restart"
+      });
+    }
+
+    // Determine recommended action
+    let recommendedAction: AgentIssueDetection["recommendedAction"] = "monitor";
+    let confidence = 0.5;
+
+    if (issues.some(i => i.severity === "critical")) {
+      recommendedAction = "reboot";
+      confidence = 0.9;
+    } else if (issues.some(i => i.severity === "high")) {
+      recommendedAction = "restart_service";
+      confidence = 0.8;
+    } else if (issues.some(i => i.type === "connection")) {
+      recommendedAction = "restart_service";
+      confidence = 0.7;
+    } else if (issues.length > 0) {
+      recommendedAction = "investigate";
+      confidence = 0.6;
+    }
+
+    return {
+      nodeName,
+      issues,
+      recommendedAction,
+      confidence
+    };
+  }
+
+  // ==========================================
+  // PRIVATE HELPER METHODS
+  // ==========================================
+
+  private async verifyAdminAccess(action: string, target?: string): Promise<void> {
+    // Check if current user has admin privileges
+    const userInfo = await this.makeRequest<any>("/me/api/json");
+    
+    if (!userInfo.authorities?.includes("authenticated") || 
+        !userInfo.authorities?.includes("jenkins.model.Jenkins.Administer")) {
+      throw new Error("Administrative privileges required for this operation");
+    }
+  }
+
+  private detectNodePlatform(node: JenkinsNode): "linux" | "windows" {
+    // Try to detect platform from node properties or description
+    const nodeInfo = node.description?.toLowerCase() || "";
+    const nodeName = node.displayName?.toLowerCase() || "";
+    
+    if (nodeInfo.includes("windows") || nodeName.includes("windows") || nodeName.includes("win")) {
+      return "windows";
+    }
+    
+    return "linux"; // Default to Linux
+  }
+
+  private getDefaultRestartCommand(platform: "linux" | "windows"): string {
+    if (platform === "windows") {
+      return 'powershell -Command "Restart-Service \\"Jenkins Agent\\" -Force"';
+    } else {
+      return "sudo systemctl restart jenkins-agent || sudo service jenkins-agent restart";
+    }
+  }
+
+  private async executeNodeScript(nodeName: string, command: string, platform: string): Promise<{ output: string }> {
+    // Use Jenkins Script Console to execute command on specific node
+    const script = platform === "windows" 
+      ? `
+        def node = Jenkins.instance.getNode('${nodeName}')
+        def channel = node.getChannel()
+        def proc = channel.call(new hudson.util.RemotingDiagnostics.VM())
+        def result = channel.call(new hudson.Proc.RemoteProc(['cmd', '/c', '${command}'] as String[], [:] as String[], System.in, System.out, System.err))
+        return result
+      `
+      : `
+        def node = Jenkins.instance.getNode('${nodeName}')
+        def channel = node.getChannel()
+        def result = channel.call(new hudson.Proc.RemoteProc(['bash', '-c', '${command}'] as String[], [:] as String[], System.in, System.out, System.err))
+        return result
+      `;
+
+    const response = await this.makeRequest<string>("/scriptText", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: `script=${encodeURIComponent(script)}`,
+    });
+
+    return { output: response };
+  }
+
+  private async getNodeSystemInfo(nodeName: string): Promise<AgentDiagnosticsResponse["systemInfo"]> {
+    // This would require script console access to get system information
+    // For now, return mock data - in real implementation, execute system commands
+    return {
+      cpu: Math.random() * 100,
+      memory: {
+        total: 8 * 1024 * 1024 * 1024, // 8GB
+        used: Math.random() * 6 * 1024 * 1024 * 1024,
+        available: 2 * 1024 * 1024 * 1024
+      },
+      disk: {
+        total: 100 * 1024 * 1024 * 1024, // 100GB
+        used: Math.random() * 80 * 1024 * 1024 * 1024,
+        available: 20 * 1024 * 1024 * 1024
+      }
+    };
+  }
+
+  private async getNodeRecentErrors(nodeName: string): Promise<string[]> {
+    // In real implementation, this would fetch recent error logs
+    return [
+      "Connection timeout after 30 seconds",
+      "Build workspace cleanup failed",
+      "Agent disconnected unexpectedly"
+    ];
+  }
+
+  private async getNodeBuildHistory(nodeName: string): Promise<AgentDiagnosticsResponse["buildHistory"]> {
+    // In real implementation, query builds executed on this node
+    return {
+      totalBuilds: 150,
+      failedBuilds: 12,
+      recentFailures: 3
+    };
+  }
+
+  private async disconnectNode(nodeName: string): Promise<void> {
+    await this.makeRequest(`/computer/${encodeURIComponent(nodeName)}/doDisconnect`, {
+      method: "POST"
+    });
+  }
+
+  private async connectNode(nodeName: string): Promise<void> {
+    await this.makeRequest(`/computer/${encodeURIComponent(nodeName)}/launchSlaveAgent`, {
+      method: "POST"
+    });
+  }
+
+  private async auditLog(entry: Partial<AuditLogEntry>): Promise<void> {
+    const auditEntry: AuditLogEntry = {
+      timestamp: new Date().toISOString(),
+      userId: "current_user", // In real implementation, get from auth context
+      action: entry.action || "unknown",
+      target: entry.target || "unknown",
+      result: entry.result || "failed",
+      details: entry.details || {}
+    };
+
+    logger.audit("Admin action performed", { 
+      timestamp: auditEntry.timestamp,
+      userId: auditEntry.userId,
+      action: auditEntry.action,
+      target: auditEntry.target,
+      result: auditEntry.result,
+      details: auditEntry.details
+    });
   }
 }

@@ -18,6 +18,9 @@ import type {
     JobStatusRequest,
     JobTriggerRequest,
     NodeStatusRequest,
+    AgentRestartRequest,
+    AgentDiagnosticsRequest,
+    AgentRecoveryRequest,
 } from "../jenkins/types.ts";
 import { logger } from "../utils/logger.ts";
 import {
@@ -276,6 +279,84 @@ const JENKINS_TOOLS: Tool[] = [
       additionalProperties: false,
     },
   },
+  {
+    name: "jenkins_restart_agent",
+    description: "Restart a Jenkins agent service on Linux or Windows (requires admin role)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        nodeName: {
+          type: "string",
+          description: "Name of the Jenkins node/agent to restart",
+        },
+        platform: {
+          type: "string",
+          enum: ["linux", "windows"],
+          description: "Platform of the agent (linux or windows)",
+        },
+        forceRestart: {
+          type: "boolean",
+          description: "Force restart even if agent appears healthy",
+          default: false,
+        },
+      },
+      required: ["nodeName", "platform"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "jenkins_agent_diagnostics",
+    description: "Run diagnostics on a Jenkins agent to detect issues (requires admin role)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        nodeName: {
+          type: "string",
+          description: "Name of the Jenkins node/agent to diagnose",
+        },
+        includeSystemInfo: {
+          type: "boolean",
+          description: "Include system information in diagnostics",
+          default: true,
+        },
+        includeProcessInfo: {
+          type: "boolean",
+          description: "Include process information in diagnostics",
+          default: true,
+        },
+      },
+      required: ["nodeName"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "jenkins_auto_recovery",
+    description: "Attempt automatic recovery of a problematic Jenkins agent (requires admin role)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        nodeName: {
+          type: "string",
+          description: "Name of the Jenkins node/agent to recover",
+        },
+        recoveryStrategy: {
+          type: "string",
+          enum: ["restart", "reconnect", "full"],
+          description: "Recovery strategy to use",
+          default: "restart",
+        },
+        maxRetries: {
+          type: "number",
+          description: "Maximum number of recovery attempts",
+          minimum: 1,
+          maximum: 5,
+          default: 3,
+        },
+      },
+      required: ["nodeName"],
+      additionalProperties: false,
+    },
+  },
 ];
 
 /**
@@ -363,6 +444,15 @@ export async function handleCallTool(
 
       case "jenkins_get_version":
         return await handleGetVersion(client);
+
+      case "jenkins_restart_agent":
+        return await handleRestartAgent(client, args as AgentRestartRequest);
+
+      case "jenkins_agent_diagnostics":
+        return await handleAgentDiagnostics(client, args as AgentDiagnosticsRequest);
+
+      case "jenkins_auto_recovery":
+        return await handleAutoRecovery(client, args as AgentRecoveryRequest);
 
       default:
         throw new Error(`Unknown tool: ${name}`);
@@ -731,5 +821,65 @@ async function handleGetVersion(
       },
     ],
     isError: false,
+  };
+}
+
+/**
+ * Handle restart agent request
+ */
+async function handleRestartAgent(
+  client: JenkinsClient,
+  args: AgentRestartRequest,
+): Promise<CallToolResult> {
+  const response = await client.restartAgent(args);
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: `Agent Restart Result:\n\n${JSON.stringify(response, null, 2)}`,
+      },
+    ],
+    isError: !response.success,
+  };
+}
+
+/**
+ * Handle agent diagnostics request
+ */
+async function handleAgentDiagnostics(
+  client: JenkinsClient,
+  args: AgentDiagnosticsRequest,
+): Promise<CallToolResult> {
+  const response = await client.getAgentDiagnostics(args);
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: `Agent Diagnostics:\n\n${JSON.stringify(response, null, 2)}`,
+      },
+    ],
+    isError: false,
+  };
+}
+
+/**
+ * Handle auto recovery request
+ */
+async function handleAutoRecovery(
+  client: JenkinsClient,
+  args: AgentRecoveryRequest,
+): Promise<CallToolResult> {
+  const response = await client.recoverAgent(args);
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: `Agent Recovery Result:\n\n${JSON.stringify(response, null, 2)}`,
+      },
+    ],
+    isError: !response.success,
   };
 }

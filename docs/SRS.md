@@ -158,6 +158,79 @@ automation servers, enabling natural language control of CI/CD pipelines.
 - **Output**: Cancellation confirmation
 - **Behavior**: Remove item from build queue
 
+### 3.5 Agent Management (F005)
+
+**Priority**: High\
+**Description**: Administrative management of Jenkins agents/slaves
+
+#### 3.5.1 Restart Agent Service (F005.1)
+
+- **Input**: Node name, platform type (linux/windows), optional force flag
+- **Output**: Service restart status and confirmation
+- **Behavior**: Restart Jenkins agent service on specified node
+- **Requirements**: Admin privileges required
+- **Platform Support**:
+  - Linux: `systemctl restart jenkins-agent` or `service jenkins-agent restart`
+  - Windows: `Restart-Service "Jenkins Agent"` or `net stop/start "Jenkins Agent"`
+
+#### 3.5.2 Detect Agent Issues (F005.2)
+
+- **Input**: Node name or build information
+- **Output**: Agent health analysis and issue detection
+- **Behavior**: Analyze agent status, connection issues, and build failures
+- **Detection Criteria**:
+  - Agent offline/disconnected
+  - Build failures due to agent communication
+  - High resource usage or hanging processes
+  - Agent response timeout
+
+#### 3.5.3 Auto-Recovery Agent (F005.3)
+
+- **Input**: Node name, recovery strategy
+- **Output**: Recovery operation results
+- **Behavior**: Automated agent recovery workflow
+- **Recovery Steps**:
+  1. Detect agent issues
+  2. Attempt soft restart (disconnect/reconnect)
+  3. If failed, attempt service restart
+  4. If failed, alert administrators
+  5. Log all recovery attempts
+
+#### 3.5.4 Get Agent Diagnostics (F005.4)
+
+- **Input**: Node name
+- **Output**: Comprehensive agent diagnostic information
+- **Behavior**: Collect agent health metrics and system information
+- **Diagnostics Include**:
+  - System resources (CPU, memory, disk)
+  - Network connectivity
+  - Service status
+  - Recent error logs
+  - Build history and failure patterns
+
+### 3.6 Security & Authorization (F006)
+
+**Priority**: Critical\
+**Description**: Role-based access control for administrative operations
+
+#### 3.6.1 Admin Role Verification (F006.1)
+
+- **Input**: User credentials and requested operation
+- **Output**: Authorization status
+- **Behavior**: Verify user has administrative privileges for agent management
+- **Requirements**: Jenkins admin role or specific agent management permissions
+
+#### 3.6.2 Audit Logging (F006.2)
+
+- **Input**: Administrative action details
+- **Output**: Audit log entry
+- **Behavior**: Log all administrative actions with user, timestamp, and results
+- **Audit Includes**:
+  - Agent service restarts
+  - Recovery operations
+  - Failed authorization attempts
+  - System modifications
+
 ---
 
 ## 4. Non-Functional Requirements
@@ -239,10 +312,12 @@ automation servers, enabling natural language control of CI/CD pipelines.
 **Implementation Status:**
 
 - ✅ F001 Job Management: Complete (jenkins_list_jobs, jenkins_get_job, jenkins_create_job)
-- ✅ F002 Build Operations: Complete (jenkins_trigger_build, jenkins_get_build, jenkins_get_build_logs, jenkins_stop_build)
+- ✅ F002 Build Operations: Complete (jenkins_trigger_build, jenkins_get_build, jenkins_stop_build)
 - ✅ F003 Node Management: Complete (jenkins_list_nodes, jenkins_get_node_status)
 - ✅ F004 Queue Management: Complete (jenkins_get_queue, jenkins_cancel_queue_item)
-- ✅ Additional Tools: jenkins_get_version for system information
+- 🚧 F005 Agent Management: In Development (jenkins_restart_agent, jenkins_agent_diagnostics, jenkins_auto_recovery)
+- 🚧 F006 Security & Authorization: In Development (admin role verification, audit logging)
+- ✅ Additional Tools: jenkins_get_version, jenkins_get_build_logs for system information
 
 ---
 

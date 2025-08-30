@@ -255,6 +255,79 @@ const TOOLS: Tool[] = [
       additionalProperties: false,
     },
   },
+  {
+    name: "jenkins_restart_agent",
+    description: "Restart a Jenkins agent service on Linux or Windows (requires admin role)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        nodeName: {
+          type: "string",
+          description: "Name of the Jenkins node/agent to restart",
+        },
+        platform: {
+          type: "string",
+          enum: ["linux", "windows"],
+          description: "Platform of the agent (linux or windows)",
+        },
+        forceRestart: {
+          type: "boolean",
+          description: "Force restart even if agent appears healthy",
+        },
+      },
+      required: ["nodeName", "platform"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "jenkins_agent_diagnostics",
+    description: "Run diagnostics on a Jenkins agent to detect issues (requires admin role)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        nodeName: {
+          type: "string",
+          description: "Name of the Jenkins node/agent to diagnose",
+        },
+        includeSystemInfo: {
+          type: "boolean",
+          description: "Include system information in diagnostics",
+        },
+        includeLogs: {
+          type: "boolean",
+          description: "Include logs and process information in diagnostics",
+        },
+      },
+      required: ["nodeName"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "jenkins_auto_recovery",
+    description: "Attempt automatic recovery of a problematic Jenkins agent (requires admin role)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        nodeName: {
+          type: "string",
+          description: "Name of the Jenkins node/agent to recover",
+        },
+        recoveryStrategy: {
+          type: "string",
+          enum: ["soft", "hard", "auto"],
+          description: "Recovery strategy to use",
+        },
+        maxRetries: {
+          type: "number",
+          description: "Maximum number of recovery attempts",
+          minimum: 1,
+          maximum: 5,
+        },
+      },
+      required: ["nodeName"],
+      additionalProperties: false,
+    },
+  },
 ];
 
 // Define resources
@@ -579,6 +652,80 @@ ${buildSteps}
             text: `Queue item ${queueId} cancelled: ${JSON.stringify(result, null, 2)}`,
           },
         ],
+      };
+    }
+
+    case "jenkins_restart_agent": {
+      const { nodeName, platform, forceRestart } = args as {
+        nodeName: string;
+        platform: "linux" | "windows";
+        forceRestart?: boolean;
+      };
+
+      await jenkinsClient.initialize();
+      const result = await jenkinsClient.restartAgent({
+        nodeName,
+        platform,
+        force: forceRestart || false,
+      });
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Agent Restart Result:\n\n${JSON.stringify(result, null, 2)}`,
+          },
+        ],
+        isError: !result.success,
+      };
+    }
+
+    case "jenkins_agent_diagnostics": {
+      const { nodeName, includeSystemInfo, includeLogs } = args as {
+        nodeName: string;
+        includeSystemInfo?: boolean;
+        includeLogs?: boolean;
+      };
+
+      await jenkinsClient.initialize();
+      const result = await jenkinsClient.getAgentDiagnostics({
+        nodeName,
+        includeSystemInfo: includeSystemInfo ?? true,
+        includeLogs: includeLogs ?? true,
+      });
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Agent Diagnostics:\n\n${JSON.stringify(result, null, 2)}`,
+          },
+        ],
+      };
+    }
+
+    case "jenkins_auto_recovery": {
+      const { nodeName, recoveryStrategy, maxRetries } = args as {
+        nodeName: string;
+        recoveryStrategy?: "soft" | "hard" | "auto";
+        maxRetries?: number;
+      };
+
+      await jenkinsClient.initialize();
+      const result = await jenkinsClient.recoverAgent({
+        nodeName,
+        strategy: recoveryStrategy || "auto",
+        maxRetries: maxRetries || 3,
+      });
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Agent Recovery Result:\n\n${JSON.stringify(result, null, 2)}`,
+          },
+        ],
+        isError: !result.success,
       };
     }
 

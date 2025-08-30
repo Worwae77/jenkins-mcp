@@ -413,3 +413,119 @@ export interface JenkinsConfig {
   timeout?: number;
   retries?: number;
 }
+
+// Agent Management types
+export interface AgentRestartRequest {
+  nodeName: string;
+  platform: "linux" | "windows" | "auto";
+  force?: boolean;
+  serviceCommand?: string;
+}
+
+export interface AgentRestartResponse {
+  success: boolean;
+  message: string;
+  nodeName: string;
+  platform: string;
+  commandExecuted: string;
+  output?: string;
+  error?: string;
+}
+
+export interface AgentDiagnosticsRequest {
+  nodeName: string;
+  includeSystemInfo?: boolean;
+  includeLogs?: boolean;
+}
+
+export interface AgentDiagnosticsResponse {
+  nodeName: string;
+  status: "online" | "offline" | "disconnected" | "unknown";
+  platform: string;
+  systemInfo?: {
+    cpu: number;
+    memory: {
+      total: number;
+      used: number;
+      available: number;
+    };
+    disk: {
+      total: number;
+      used: number;
+      available: number;
+    };
+  };
+  networkInfo?: {
+    latency: number;
+    connectionStatus: string;
+  };
+  serviceInfo?: {
+    status: "running" | "stopped" | "error" | "unknown";
+    pid?: number;
+    uptime?: string;
+  };
+  recentErrors?: string[];
+  buildHistory?: {
+    totalBuilds: number;
+    failedBuilds: number;
+    recentFailures: number;
+  };
+}
+
+export interface AgentRecoveryRequest {
+  nodeName: string;
+  strategy: "soft" | "hard" | "auto";
+  maxRetries?: number;
+}
+
+export interface AgentRecoveryResponse {
+  success: boolean;
+  nodeName: string;
+  strategy: string;
+  steps: {
+    step: string;
+    status: "success" | "failed" | "skipped";
+    message: string;
+    timestamp: string;
+  }[];
+  finalStatus: "recovered" | "failed" | "partial";
+}
+
+export interface AgentIssueDetection {
+  nodeName: string;
+  issues: {
+    type: "connection" | "performance" | "build_failure" | "resource" | "service";
+    severity: "low" | "medium" | "high" | "critical";
+    description: string;
+    detected: string;
+    suggestion: string;
+  }[];
+  recommendedAction: "monitor" | "restart_service" | "reboot" | "investigate";
+  confidence: number;
+}
+
+// Admin Authorization types
+export interface AdminActionRequest {
+  action: string;
+  nodeName?: string;
+  userId: string;
+  justification?: string;
+}
+
+export interface AdminActionResponse {
+  authorized: boolean;
+  userId: string;
+  roles: string[];
+  permissions: string[];
+  message: string;
+}
+
+export interface AuditLogEntry {
+  timestamp: string;
+  userId: string;
+  action: string;
+  target: string;
+  result: "success" | "failed" | "denied";
+  details: Record<string, any>;
+  ipAddress?: string;
+}
