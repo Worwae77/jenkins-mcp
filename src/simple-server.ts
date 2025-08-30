@@ -110,6 +110,33 @@ const TOOLS: Tool[] = [
       additionalProperties: false,
     },
   },
+  {
+    name: "jenkins_get_build_logs",
+    description: "Get console logs from a specific Jenkins build",
+    inputSchema: {
+      type: "object",
+      properties: {
+        jobName: {
+          type: "string",
+          description: "Name of the Jenkins job",
+        },
+        buildNumber: {
+          type: ["string", "number"],
+          description: "Build number (or 'lastBuild', 'lastSuccessfulBuild', etc.)",
+        },
+        start: {
+          type: "number",
+          description: "Starting byte offset for logs",
+        },
+        progressiveLog: {
+          type: "boolean",
+          description: "Whether to use progressive log retrieval",
+        },
+      },
+      required: ["jobName", "buildNumber"],
+      additionalProperties: false,
+    },
+  },
 ];
 
 // Define resources
@@ -220,6 +247,33 @@ async function handleTool(
             text: `Jenkins Server Information:\n\n${
               JSON.stringify(version, null, 2)
             }`,
+          },
+        ],
+      };
+    }
+
+    case "jenkins_get_build_logs": {
+      const { jobName, buildNumber, start = 0, progressiveLog = false } = args as {
+        jobName: string;
+        buildNumber: string | number;
+        start?: number;
+        progressiveLog?: boolean;
+      };
+      validateJobName(jobName);
+
+      await jenkinsClient.initialize();
+      const logs = await jenkinsClient.getBuildLogs({
+        jobName,
+        buildNumber: buildNumber.toString(),
+        start,
+        progressiveLog,
+      });
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Build Logs for ${jobName} #${buildNumber}:\n\n${logs.text}`,
           },
         ],
       };
