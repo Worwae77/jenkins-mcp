@@ -13,6 +13,7 @@ export interface AuthConfig {
 
 export interface AuthHeaders {
   "Authorization"?: string;
+  "Cookie"?: string;
   [key: string]: string | undefined; // Allow index signature for CSRF headers
 }
 
@@ -25,6 +26,7 @@ export class JenkinsAuth {
   private password?: string;
   private crumb?: string;
   private crumbRequestField?: string;
+  private cookies: Map<string, string> = new Map(); // Cookie jar for session management
 
   constructor(authConfig?: AuthConfig) {
     this.username = authConfig?.username || config.jenkinsUsername;
@@ -62,7 +64,35 @@ export class JenkinsAuth {
       headers[this.crumbRequestField] = this.crumb;
     }
 
+    // Add cookies for session management
+    if (this.cookies.size > 0) {
+      const cookieString = Array.from(this.cookies.entries())
+        .map(([name, value]) => `${name}=${value}`)
+        .join('; ');
+      headers.Cookie = cookieString;
+    }
+
     return headers;
+  }
+
+  /**
+   * Process response cookies and store them
+   */
+  private processCookies(response: Response): void {
+    const setCookieHeaders = response.headers.get('set-cookie');
+    if (setCookieHeaders) {
+      // Parse cookies from set-cookie header
+      const cookies = setCookieHeaders.split(',').map(cookie => cookie.trim());
+      
+      for (const cookie of cookies) {
+        const [nameValue] = cookie.split(';');
+        const [name, value] = nameValue.split('=');
+        if (name && value) {
+          this.cookies.set(name.trim(), value.trim());
+          logger.debug(`Stored cookie: ${name.trim()}`);
+        }
+      }
+    }
   }
 
   /**
@@ -81,6 +111,9 @@ export class JenkinsAuth {
         },
       });
 
+      // Process cookies from response
+      this.processCookies(response);
+
       if (response.ok) {
         const crumbData = await response.json() as {
           crumb: string;
@@ -90,7 +123,10 @@ export class JenkinsAuth {
         this.crumb = crumbData.crumb;
         this.crumbRequestField = crumbData.crumbRequestField;
 
-        logger.debug("CSRF crumb fetched successfully");
+        logger.debug("CSRF crumb fetched successfully", {
+          crumbRequestField: this.crumbRequestField,
+          cookieCount: this.cookies.size
+        });
       } else {
         logger.warn(
           `Failed to fetch CSRF crumb: ${response.status} ${response.statusText}`,
@@ -116,6 +152,9 @@ export class JenkinsAuth {
           ...authHeaders,
         },
       });
+
+      // Process cookies from response
+      this.processCookies(response);
 
       if (response.ok) {
         const userData = await response.json() as {
@@ -189,5 +228,39 @@ export class JenkinsAuth {
     this.password = undefined;
     this.crumb = undefined;
     this.crumbRequestField = undefined;
+    this.cookies.clear(); // Clear cookie jar
+  }
+
+  /**
+   * Get current cookie jar status
+   */
+  getCookieJarInfo(): { count: number; cookies: string[] } {
+    return {
+      count: this.cookies.size,
+      cookies: Array.from(this.cookies.keys())
+    };
+  }
+
+  /**
+   * Make authenticated request with cookie and crumb handling
+   */
+  async makeAuthenticatedRequest(url: string, options: RequestInit = {}): Promise<Response> {
+    const authHeaders = this.getAuthHeaders();
+    
+    const requestOptions: RequestInit = {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders,
+        ...options.headers,
+      },
+    };
+
+    const response = await fetch(url, requestOptions);
+    
+    // Always process cookies from response to maintain session
+    this.processCookies(response);
+    
+    return response;
   }
 }

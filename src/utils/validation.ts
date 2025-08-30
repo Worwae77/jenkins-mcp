@@ -13,8 +13,8 @@ export const jobNameSchema = z.string()
   .min(1, "Job name cannot be empty")
   .max(255, "Job name too long")
   .regex(
-    /^[a-zA-Z0-9_-]+$/,
-    "Job name can only contain letters, numbers, underscores, and hyphens",
+    /^[a-zA-Z0-9_.\/-]+$/,
+    "Job name can contain letters, numbers, underscores, hyphens, dots, and forward slashes for folder paths",
   );
 
 // Build number validation

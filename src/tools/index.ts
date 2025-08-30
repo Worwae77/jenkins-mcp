@@ -6,24 +6,24 @@
  */
 
 import type {
-  CallToolRequest,
-  CallToolResult,
-  ListToolsRequest,
-  Tool,
+    CallToolRequest,
+    CallToolResult,
+    ListToolsRequest,
+    Tool,
 } from "@modelcontextprotocol/sdk/types.js";
 
 import { JenkinsClient } from "../jenkins/client.ts";
 import type {
-  BuildLogsRequest,
-  JobStatusRequest,
-  JobTriggerRequest,
-  NodeStatusRequest,
+    BuildLogsRequest,
+    JobStatusRequest,
+    JobTriggerRequest,
+    NodeStatusRequest,
 } from "../jenkins/types.ts";
 import { logger } from "../utils/logger.ts";
 import {
-  validateBuildNumber,
-  validateJobName,
-  validateJobParameters,
+    validateBuildNumber,
+    validateJobName,
+    validateJobParameters,
 } from "../utils/validation.ts";
 
 /**
@@ -447,7 +447,18 @@ async function handleCreateJob(
   validateJobName(args.jobName);
 
   const jobType = args.jobType || "freestyle";
-  const description = args.description || "";
+  
+  // XML escape function for security
+  const escapeXml = (str: string): string => {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  };
+  
+  const description = escapeXml(args.description || "");
 
   let configXml: string;
 
@@ -456,30 +467,26 @@ async function handleCreateJob(
       throw new Error("Pipeline script is required for pipeline jobs");
     }
 
-    configXml = `<?xml version='1.1' encoding='UTF-8'?>
+    configXml = `<?xml version='1.0' encoding='UTF-8'?>
 <flow-definition plugin="workflow-job">
-  <actions/>
   <description>${description}</description>
   <keepDependencies>false</keepDependencies>
   <properties/>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps">
-    <script>${args.script}</script>
+    <script>${escapeXml(args.script)}</script>
     <sandbox>true</sandbox>
   </definition>
   <triggers/>
   <disabled>false</disabled>
 </flow-definition>`;
   } else {
-    // Freestyle job
-    const commandsXml = args.commands
-      ? args.commands.map((cmd) => `        <command>${cmd}</command>`).join(
-        "\n",
-      )
-      : '        <command>echo "Hello World"</command>';
+    // Freestyle job - minimal XML for compatibility
+    const commandsText = args.commands
+      ? escapeXml(args.commands.join('\n'))
+      : 'echo "Hello World"';
 
-    configXml = `<?xml version='1.1' encoding='UTF-8'?>
+    configXml = `<?xml version='1.0' encoding='UTF-8'?>
 <project>
-  <actions/>
   <description>${description}</description>
   <keepDependencies>false</keepDependencies>
   <properties/>
@@ -492,7 +499,7 @@ async function handleCreateJob(
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-${commandsXml}
+      <command>${commandsText}</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>

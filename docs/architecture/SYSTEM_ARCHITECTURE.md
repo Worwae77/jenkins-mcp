@@ -181,27 +181,47 @@ design pattern optimized for security, performance, and maintainability.
 
 ### 4.2 Authentication Flow
 
-```
+```mermaid
 1. Server Initialization
    ├─ Load environment variables
    ├─ Validate credentials
+   ├─ Fetch CSRF crumb
+   ├─ Store session cookies
    └─ Test connection
 
 2. Request Authentication
-   ├─ Fetch CSRF crumb (if required)
-   ├─ Prepare auth headers
-   └─ Include credentials
+   ├─ Add Basic Auth header
+   ├─ Include CSRF crumb
+   ├─ Add session cookies
+   └─ Send request
 
 3. Jenkins Validation
-   ├─ Verify API token/password
+   ├─ Verify credentials
    ├─ Check user permissions
-   └─ Return access token
+   ├─ Set session cookies
+   └─ Return response
 
-4. Ongoing Requests
+4. Response Processing
+   ├─ Store new cookies
+   ├─ Handle 403 errors
+   ├─ Refresh crumb if needed
+   └─ Retry request
+
+5. Ongoing Requests
    ├─ Reuse authentication
+   ├─ Maintain cookie jar
    ├─ Handle token expiry
-   └─ Refresh as needed
+   └─ Auto-refresh as needed
 ```
+
+### 4.3 API Request Pattern
+
+The Jenkins MCP Server follows a robust API request pattern:
+
+1. **Initial Setup**: Fetch CSRF crumb and establish session
+2. **Request Headers**: Include authorization, cookies, and CSRF protection
+3. **Error Handling**: Auto-retry with fresh authentication on 403 errors
+4. **Session Persistence**: Maintain cookies across requests for optimal performance
 
 ---
 
@@ -209,14 +229,15 @@ design pattern optimized for security, performance, and maintainability.
 
 ### 5.1 Security Layers
 
-| Layer                | Security Measures                              |
-| -------------------- | ---------------------------------------------- |
-| **Transport**        | HTTPS encryption for Jenkins communication     |
-| **Authentication**   | API tokens, username/password, CSRF protection |
-| **Authorization**    | Jenkins user permissions respected             |
-| **Input Validation** | Sanitize all user inputs                       |
-| **Error Handling**   | No sensitive data in error messages            |
-| **Logging**          | Audit trail without credentials                |
+| Layer                | Security Measures                                         |
+| -------------------- | --------------------------------------------------------- |
+| **Transport**        | HTTPS encryption for Jenkins communication                |
+| **Authentication**   | API tokens, username/password, CSRF protection           |
+| **Session Management** | Cookie jar for session persistence, automatic renewal   |
+| **Authorization**    | Jenkins user permissions respected                        |
+| **Input Validation** | Sanitize all user inputs                                  |
+| **Error Handling**   | No sensitive data in error messages                       |
+| **Logging**          | Audit trail without credentials                           |
 
 ### 5.2 Authentication Methods
 
@@ -237,6 +258,13 @@ interface PasswordAuth {
   password: string; // Basic authentication
 }
 ```
+
+### 5.3 Enhanced Authentication Features
+
+- **CSRF Protection**: Automatic crumb fetching and inclusion
+- **Cookie Jar Management**: Session cookie storage and persistence
+- **Automatic Retry**: Refresh authentication on 403 errors
+- **Session Persistence**: Maintain authentication state across requests
 
 ### 5.3 Security Considerations
 

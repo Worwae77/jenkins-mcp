@@ -57,7 +57,7 @@ export const config: Config = {
   jenkinsUrl: getEnv("JENKINS_URL"),
   jenkinsUsername: Deno.env.get("JENKINS_USERNAME"),
   jenkinsApiToken: Deno.env.get("JENKINS_API_TOKEN"),
-  jenkinsPassword: Deno.env.get("JENKINS_PASSWORD"),
+  jenkinsPassword: Deno.env.get("JENKINS_API_PASSWORD"),
 
   // Security configuration
   allowedDomains: parseArrayEnv("ALLOWED_DOMAINS"),
@@ -78,12 +78,12 @@ export function validateConfig(): void {
 
   if (!config.jenkinsApiToken && !config.jenkinsPassword) {
     throw new Error(
-      "Either JENKINS_API_TOKEN or JENKINS_PASSWORD must be provided",
+      "Either JENKINS_API_TOKEN or JENKINS_API_PASSWORD must be provided",
     );
   }
 
   if (config.jenkinsPassword && !config.jenkinsUsername) {
-    throw new Error("JENKINS_USERNAME is required when using JENKINS_PASSWORD");
+    throw new Error("JENKINS_USERNAME is required when using JENKINS_API_PASSWORD");
   }
 
   try {

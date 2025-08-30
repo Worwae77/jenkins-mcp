@@ -36,8 +36,8 @@ if [[ -z "${JENKINS_USERNAME:-}" ]]; then
     exit 1
 fi
 
-if [[ -z "${JENKINS_API_TOKEN:-}" ]] && [[ -z "${JENKINS_PASSWORD:-}" ]]; then
-    echo "Error: Either JENKINS_API_TOKEN or JENKINS_PASSWORD must be provided"
+if [[ -z "${JENKINS_API_TOKEN:-}" ]] && [[ -z "${JENKINS_API_PASSWORD:-}" ]]; then
+    echo "Error: Either JENKINS_API_TOKEN or JENKINS_API_PASSWORD must be provided"
     exit 1
 fi
 

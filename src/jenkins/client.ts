@@ -67,6 +67,21 @@ export class JenkinsClient {
   }
 
   /**
+   * Get authentication status and debug information
+   */
+  getAuthStatus(): {
+    method: string;
+    cookieJar: { count: number; cookies: string[] };
+    hasCredentials: boolean;
+  } {
+    return {
+      method: this.auth.getAuthMethod(),
+      cookieJar: this.auth.getCookieJarInfo(),
+      hasCredentials: this.auth.isConfigured(),
+    };
+  }
+
+  /**
    * Make HTTP request to Jenkins API with retry logic
    */
   private async makeRequest<T>(
@@ -74,15 +89,9 @@ export class JenkinsClient {
     options: RequestInit = {},
   ): Promise<T> {
     const url = `${this.jenkinsUrl}${endpoint}`;
-    const authHeaders = this.auth.getAuthHeaders();
 
     const requestOptions: RequestInit = {
       ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...authHeaders,
-        ...options.headers,
-      },
       signal: AbortSignal.timeout(this.timeout),
     };
 
@@ -96,9 +105,17 @@ export class JenkinsClient {
           } ${url} (attempt ${attempt})`,
         );
 
-        const response = await fetch(url, requestOptions);
+        // Use the auth class's authenticated request method
+        const response = await this.auth.makeAuthenticatedRequest(url, requestOptions);
 
         if (!response.ok) {
+          // If we get 403 and don't have a fresh crumb, try to refresh it
+          if (response.status === 403 && attempt === 1) {
+            logger.info("Got 403, refreshing CSRF crumb...");
+            await this.auth.fetchCrumb(this.jenkinsUrl);
+            continue; // Retry with fresh crumb
+          }
+          
           throw new Error(
             `Jenkins API error: ${response.status} ${response.statusText}`,
           );
@@ -150,9 +167,13 @@ export class JenkinsClient {
    * Get specific job details
    */
   async getJob(jobName: string): Promise<JenkinsJob> {
-    const encodedJobName = encodeURIComponent(jobName);
+    // Handle folder-based job names
+    const jobPath = jobName.includes('/') 
+      ? jobName.split('/').map(encodeURIComponent).join('/job/')
+      : encodeURIComponent(jobName);
+    
     return await this.makeRequest<JenkinsJob>(
-      `/job/${encodedJobName}/api/json`,
+      `/job/${jobPath}/api/json`,
     );
   }
 
@@ -160,13 +181,17 @@ export class JenkinsClient {
    * Trigger a job build
    */
   async triggerJob(request: JobTriggerRequest): Promise<JobTriggerResponse> {
-    const encodedJobName = encodeURIComponent(request.jobName);
-    let endpoint = `/job/${encodedJobName}/build`;
+    // Handle folder-based job names
+    const jobPath = request.jobName.includes('/') 
+      ? request.jobName.split('/').map(encodeURIComponent).join('/job/')
+      : encodeURIComponent(request.jobName);
+    
+    let endpoint = `/job/${jobPath}/build`;
 
     const params = new URLSearchParams();
 
     if (request.parameters && Object.keys(request.parameters).length > 0) {
-      endpoint = `/job/${encodedJobName}/buildWithParameters`;
+      endpoint = `/job/${jobPath}/buildWithParameters`;
       Object.entries(request.parameters).forEach(([key, value]) => {
         params.append(key, String(value));
       });
@@ -224,8 +249,12 @@ export class JenkinsClient {
     jobName: string,
     buildNumber: number | string,
   ): Promise<JenkinsBuild> {
-    const encodedJobName = encodeURIComponent(jobName);
-    const endpoint = `/job/${encodedJobName}/${buildNumber}/api/json`;
+    // Handle folder-based job names
+    const jobPath = jobName.includes('/') 
+      ? jobName.split('/').map(encodeURIComponent).join('/job/')
+      : encodeURIComponent(jobName);
+    
+    const endpoint = `/job/${jobPath}/${buildNumber}/api/json`;
     return await this.makeRequest<JenkinsBuild>(endpoint);
   }
 
@@ -233,14 +262,18 @@ export class JenkinsClient {
    * Get build logs
    */
   async getBuildLogs(request: BuildLogsRequest): Promise<BuildLogsResponse> {
-    const encodedJobName = encodeURIComponent(request.jobName);
+    // Handle folder-based job names
+    const jobPath = request.jobName.includes('/') 
+      ? request.jobName.split('/').map(encodeURIComponent).join('/job/')
+      : encodeURIComponent(request.jobName);
+    
     const { buildNumber, start = 0, progressiveLog = false } = request;
 
-    let endpoint = `/job/${encodedJobName}/${buildNumber}/consoleText`;
+    let endpoint = `/job/${jobPath}/${buildNumber}/consoleText`;
 
     if (progressiveLog) {
       endpoint =
-        `/job/${encodedJobName}/${buildNumber}/logText/progressiveText`;
+        `/job/${jobPath}/${buildNumber}/logText/progressiveText`;
       if (start > 0) {
         endpoint += `?start=${start}`;
       }
@@ -324,23 +357,73 @@ export class JenkinsClient {
    * Create a new job
    */
   async createJob(jobName: string, configXml: string): Promise<void> {
-    const encodedJobName = encodeURIComponent(jobName);
-    await this.makeRequest(`/createItem?name=${encodedJobName}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/xml",
-      },
-      body: configXml,
-    });
-    logger.audit("Job created", { jobName });
+    let endpoint: string;
+    let actualJobName: string;
+
+    // Check if job name contains folder path
+    if (jobName.includes('/')) {
+      const parts = jobName.split('/');
+      actualJobName = parts.pop()!; // Last part is the job name
+      
+      // Build correct folder path for Jenkins API
+      // For nested folders: /job/folder1/job/subfolder/createItem?name=jobName
+      const folderParts = parts.map(part => `job/${encodeURIComponent(part)}`).join('/');
+      endpoint = `/${folderParts}/createItem?name=${encodeURIComponent(actualJobName)}`;
+      
+      logger.debug(`Creating job in folder path: ${parts.join('/')}, job name: ${actualJobName}`);
+      logger.debug(`Using endpoint: ${endpoint}`);
+    } else {
+      // Root level job creation
+      endpoint = `/createItem?name=${encodeURIComponent(jobName)}`;
+      actualJobName = jobName;
+      logger.debug(`Creating root level job: ${jobName}`);
+    }
+
+    // Try simple auth without CSRF first
+    const url = `${this.jenkinsUrl}${endpoint}`;
+    
+    // Get basic auth headers without CSRF
+    const basicAuthHeaders: Record<string, string> = {
+      "Content-Type": "application/xml"
+    };
+    
+    // Add authentication header only
+    if (this.auth.getAuthMethod() !== "None") {
+      const authData = this.auth.getAuthHeaders();
+      if (authData.Authorization) {
+        basicAuthHeaders.Authorization = authData.Authorization;
+      }
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: basicAuthHeaders,
+        body: configXml,
+        signal: AbortSignal.timeout(this.timeout),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Jenkins API error: ${response.status} ${response.statusText}`);
+      }
+
+      logger.audit("Job created successfully", { jobName, actualJobName, endpoint });
+    } catch (error) {
+      logger.error("Job creation failed:", error);
+      throw error;
+    }
   }
 
   /**
    * Update job configuration
    */
   async updateJob(jobName: string, configXml: string): Promise<void> {
-    const encodedJobName = encodeURIComponent(jobName);
-    await this.makeRequest(`/job/${encodedJobName}/config.xml`, {
+    // Handle folder-based job names
+    const jobPath = jobName.includes('/') 
+      ? jobName.split('/').map(encodeURIComponent).join('/job/')
+      : encodeURIComponent(jobName);
+    
+    await this.makeRequest(`/job/${jobPath}/config.xml`, {
       method: "POST",
       headers: {
         "Content-Type": "application/xml",
@@ -354,8 +437,12 @@ export class JenkinsClient {
    * Delete a job
    */
   async deleteJob(jobName: string): Promise<void> {
-    const encodedJobName = encodeURIComponent(jobName);
-    await this.makeRequest(`/job/${encodedJobName}/doDelete`, {
+    // Handle folder-based job names
+    const jobPath = jobName.includes('/') 
+      ? jobName.split('/').map(encodeURIComponent).join('/job/')
+      : encodeURIComponent(jobName);
+    
+    await this.makeRequest(`/job/${jobPath}/doDelete`, {
       method: "POST",
     });
     logger.audit("Job deleted", { jobName });
@@ -365,7 +452,11 @@ export class JenkinsClient {
    * Get job configuration XML
    */
   async getJobConfig(jobName: string): Promise<string> {
-    const encodedJobName = encodeURIComponent(jobName);
-    return await this.makeRequest<string>(`/job/${encodedJobName}/config.xml`);
+    // Handle folder-based job names
+    const jobPath = jobName.includes('/') 
+      ? jobName.split('/').map(encodeURIComponent).join('/job/')
+      : encodeURIComponent(jobName);
+    
+    return await this.makeRequest<string>(`/job/${jobPath}/config.xml`);
   }
 }

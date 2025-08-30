@@ -285,6 +285,22 @@ const PROMPTS: Prompt[] = [
       },
     ],
   },
+  {
+    name: "jenkins_pipeline_best_practices",
+    description: "Provide Jenkins Pipeline best practices and recommendations",
+    arguments: [
+      {
+        name: "pipelineType",
+        description: "Type of pipeline (declarative, scripted, multibranch)",
+        required: false,
+      },
+      {
+        name: "technology",
+        description: "Technology stack (java, node, python, docker, etc.)",
+        required: false,
+      },
+    ],
+  },
 ];
 
 // Handle tool calls
@@ -408,12 +424,53 @@ async function handleTool(
       validateJobName(jobName);
 
       await jenkinsClient.initialize();
-      const result = await jenkinsClient.createJob(jobName, {
-        type: jobType,
-        description: description || `Created via MCP - ${new Date().toISOString()}`,
-        script,
-        commands,
-      });
+      
+      // Generate XML configuration
+      let configXml: string;
+      
+      if (jobType === "freestyle") {
+        const escapedDescription = (description || `Created via MCP - ${new Date().toISOString()}`).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const buildSteps = (commands || []).map(cmd => 
+          `    <hudson.tasks.Shell><command>${cmd.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</command></hudson.tasks.Shell>`
+        ).join('\n');
+        
+        configXml = `<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <description>${escapedDescription}</description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+${buildSteps}
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>`;
+      } else {
+        const escapedDescription = (description || `Created via MCP - ${new Date().toISOString()}`).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const escapedScript = (script || "echo 'Hello from pipeline'").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        
+        configXml = `<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job">
+  <description>${escapedDescription}</description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps">
+    <script>${escapedScript}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>`;
+      }
+      
+      const result = await jenkinsClient.createJob(jobName, configXml);
 
       return {
         content: [
@@ -601,6 +658,70 @@ Please provide:
 
       return {
         description: "Jenkins build troubleshooting analysis",
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: prompt,
+            },
+          },
+        ],
+      };
+    }
+
+    case "jenkins_pipeline_best_practices": {
+      const { pipelineType, technology } = args as {
+        pipelineType?: string;
+        technology?: string;
+      };
+
+      const pipelineTypeStr = pipelineType || "declarative";
+      const technologyStr = technology || "general";
+
+      const prompt =
+        `You are a Jenkins Pipeline expert. Please provide comprehensive best practices and recommendations for Jenkins Pipelines.
+
+Context:
+- Pipeline Type: ${pipelineTypeStr}
+- Technology Stack: ${technologyStr}
+
+Please provide guidance on:
+
+1. **Pipeline Structure & Design**
+   - Recommended pipeline structure
+   - Stage organization best practices
+   - Error handling strategies
+
+2. **Performance Optimization**
+   - Build time optimization techniques
+   - Resource usage optimization
+   - Parallel execution strategies
+
+3. **Security Best Practices**
+   - Credential management
+   - Secret handling
+   - Access control
+
+4. **Maintainability**
+   - Code organization
+   - Shared libraries usage
+   - Documentation practices
+
+5. **Monitoring & Observability**
+   - Logging best practices
+   - Metrics collection
+   - Alerting strategies
+
+6. **Technology-Specific Recommendations**
+   - Best practices for ${technologyStr} projects
+   - Relevant plugins and tools
+   - Common pitfalls to avoid
+
+Please provide practical examples and code snippets where applicable.`;
+
+      return {
+        description: `Jenkins Pipeline best practices for ${pipelineTypeStr} pipelines with ${technologyStr}`,
         messages: [
           {
             role: "user",
