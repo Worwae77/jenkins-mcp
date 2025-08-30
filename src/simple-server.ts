@@ -137,6 +137,124 @@ const TOOLS: Tool[] = [
       additionalProperties: false,
     },
   },
+  {
+    name: "jenkins_create_job",
+    description: "Create a new Jenkins job",
+    inputSchema: {
+      type: "object",
+      properties: {
+        jobName: {
+          type: "string",
+          description: "Name of the new Jenkins job",
+        },
+        jobType: {
+          type: "string",
+          description: "Type of job (freestyle, pipeline)",
+          enum: ["freestyle", "pipeline"],
+        },
+        description: {
+          type: "string",
+          description: "Job description",
+        },
+        script: {
+          type: "string",
+          description: "Pipeline script (for pipeline jobs)",
+        },
+        commands: {
+          type: "array",
+          items: { type: "string" },
+          description: "Shell commands (for freestyle jobs)",
+        },
+      },
+      required: ["jobName", "jobType"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "jenkins_get_build",
+    description: "Get detailed information about a specific build",
+    inputSchema: {
+      type: "object",
+      properties: {
+        jobName: {
+          type: "string",
+          description: "Name of the Jenkins job",
+        },
+        buildNumber: {
+          type: ["string", "number"],
+          description: "Build number (or 'lastBuild', 'lastSuccessfulBuild', etc.)",
+        },
+      },
+      required: ["jobName", "buildNumber"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "jenkins_stop_build",
+    description: "Stop a running Jenkins build",
+    inputSchema: {
+      type: "object",
+      properties: {
+        jobName: {
+          type: "string",
+          description: "Name of the Jenkins job",
+        },
+        buildNumber: {
+          type: "number",
+          description: "Build number to stop",
+        },
+      },
+      required: ["jobName", "buildNumber"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "jenkins_list_nodes",
+    description: "List all Jenkins nodes and their status",
+    inputSchema: {
+      type: "object",
+      properties: {},
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "jenkins_get_node_status",
+    description: "Get detailed status of a specific Jenkins node",
+    inputSchema: {
+      type: "object",
+      properties: {
+        nodeName: {
+          type: "string",
+          description: "Name of the Jenkins node (optional, defaults to master)",
+        },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "jenkins_get_queue",
+    description: "Get current Jenkins build queue",
+    inputSchema: {
+      type: "object",
+      properties: {},
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "jenkins_cancel_queue_item",
+    description: "Cancel a queued Jenkins build",
+    inputSchema: {
+      type: "object",
+      properties: {
+        queueId: {
+          type: "number",
+          description: "Queue item ID to cancel",
+        },
+      },
+      required: ["queueId"],
+      additionalProperties: false,
+    },
+  },
 ];
 
 // Define resources
@@ -274,6 +392,134 @@ async function handleTool(
           {
             type: "text",
             text: `Build Logs for ${jobName} #${buildNumber}:\n\n${logs.text}`,
+          },
+        ],
+      };
+    }
+
+    case "jenkins_create_job": {
+      const { jobName, jobType, description, script, commands } = args as {
+        jobName: string;
+        jobType: "freestyle" | "pipeline";
+        description?: string;
+        script?: string;
+        commands?: string[];
+      };
+      validateJobName(jobName);
+
+      await jenkinsClient.initialize();
+      const result = await jenkinsClient.createJob(jobName, {
+        type: jobType,
+        description: description || `Created via MCP - ${new Date().toISOString()}`,
+        script,
+        commands,
+      });
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Job '${jobName}' created successfully: ${JSON.stringify(result, null, 2)}`,
+          },
+        ],
+      };
+    }
+
+    case "jenkins_get_build": {
+      const { jobName, buildNumber } = args as {
+        jobName: string;
+        buildNumber: string | number;
+      };
+      validateJobName(jobName);
+
+      await jenkinsClient.initialize();
+      const build = await jenkinsClient.getBuild(jobName, buildNumber);
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Build Information:\n\n${JSON.stringify(build, null, 2)}`,
+          },
+        ],
+      };
+    }
+
+    case "jenkins_stop_build": {
+      const { jobName, buildNumber } = args as {
+        jobName: string;
+        buildNumber: number;
+      };
+      validateJobName(jobName);
+
+      await jenkinsClient.initialize();
+      const result = await jenkinsClient.stopBuild(jobName, buildNumber);
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Build ${buildNumber} for job '${jobName}' stopped: ${JSON.stringify(result, null, 2)}`,
+          },
+        ],
+      };
+    }
+
+    case "jenkins_list_nodes": {
+      await jenkinsClient.initialize();
+      const nodes = await jenkinsClient.listNodes();
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Jenkins Nodes:\n\n${JSON.stringify(nodes, null, 2)}`,
+          },
+        ],
+      };
+    }
+
+    case "jenkins_get_node_status": {
+      const { nodeName } = args as { nodeName?: string };
+
+      await jenkinsClient.initialize();
+      const nodeStatus = await jenkinsClient.getNodeStatus({ nodeName: nodeName || "" });
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Node Status:\n\n${JSON.stringify(nodeStatus, null, 2)}`,
+          },
+        ],
+      };
+    }
+
+    case "jenkins_get_queue": {
+      await jenkinsClient.initialize();
+      const queue = await jenkinsClient.getQueue();
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Build Queue:\n\n${JSON.stringify(queue, null, 2)}`,
+          },
+        ],
+      };
+    }
+
+    case "jenkins_cancel_queue_item": {
+      const { queueId } = args as { queueId: number };
+
+      await jenkinsClient.initialize();
+      const result = await jenkinsClient.cancelQueueItem(queueId);
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Queue item ${queueId} cancelled: ${JSON.stringify(result, null, 2)}`,
           },
         ],
       };
