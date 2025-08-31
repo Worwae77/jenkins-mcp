@@ -43,9 +43,9 @@ copy .vscode\claude_desktop_config.json %APPDATA%\Claude\claude_desktop_config.j
         "/YOUR/FULL/PATH/TO/jenkins-mcp/src/simple-server.ts"
       ],
       "env": {
-        "JENKINS_URL": "http://jenkins1.lab.127.0.0.1.nip.io",
-        "JENKINS_USERNAME": "admin",
-        "JENKINS_API_TOKEN": "116ff6632677def8eed7140bf738d859ce"
+        "JENKINS_URL": "https://your-jenkins.com",
+        "JENKINS_USERNAME": "your-username",
+        "JENKINS_API_TOKEN": "your-api-token"
       }
     }
   }

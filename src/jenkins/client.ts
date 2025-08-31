@@ -102,7 +102,9 @@ export class JenkinsClient {
           signal: AbortSignal.timeout(this.timeout),
         };
 
-        logger.debug(`Making Jenkins API request: ${requestOptions.method} ${url}`);
+        logger.debug(
+          `Making Jenkins API request: ${requestOptions.method} ${url}`,
+        );
 
         const response = await fetch(url, requestOptions);
 
@@ -153,12 +155,12 @@ export class JenkinsClient {
    */
   async getJob(jobName: string): Promise<JenkinsJob> {
     logger.info(`Fetching job details: ${jobName}`);
-    
+
     // Handle folder-based job names by encoding each segment
-    const jobPath = jobName.includes('/') 
-      ? jobName.split('/').map(encodeURIComponent).join('/job/')
+    const jobPath = jobName.includes("/")
+      ? jobName.split("/").map(encodeURIComponent).join("/job/")
       : encodeURIComponent(jobName);
-    
+
     const job = await this.makeRequest<JenkinsJob>(`/job/${jobPath}/api/json`);
     logger.audit("Job details fetched", { jobName, buildable: job.buildable });
     return job;
@@ -194,12 +196,12 @@ export class JenkinsClient {
    */
   async deleteJob(jobName: string): Promise<void> {
     logger.info(`Deleting job: ${jobName}`);
-    
+
     // Handle folder-based job names
-    const jobPath = jobName.includes('/') 
-      ? jobName.split('/').map(encodeURIComponent).join('/job/')
+    const jobPath = jobName.includes("/")
+      ? jobName.split("/").map(encodeURIComponent).join("/job/")
       : encodeURIComponent(jobName);
-    
+
     await this.makeRequest(`/job/${jobPath}/doDelete`, {
       method: "POST",
     });
@@ -211,10 +213,10 @@ export class JenkinsClient {
    */
   async getJobConfig(jobName: string): Promise<string> {
     // Handle folder-based job names
-    const jobPath = jobName.includes('/') 
-      ? jobName.split('/').map(encodeURIComponent).join('/job/')
+    const jobPath = jobName.includes("/")
+      ? jobName.split("/").map(encodeURIComponent).join("/job/")
       : encodeURIComponent(jobName);
-    
+
     return await this.makeRequest<string>(`/job/${jobPath}/config.xml`);
   }
 
@@ -228,17 +230,21 @@ export class JenkinsClient {
   async triggerBuild(request: JobTriggerRequest): Promise<JobTriggerResponse> {
     logger.info(`Triggering build for job: ${request.jobName}`);
 
-    const jobPath = request.jobName.includes('/') 
-      ? request.jobName.split('/').map(encodeURIComponent).join('/job/')
+    const jobPath = request.jobName.includes("/")
+      ? request.jobName.split("/").map(encodeURIComponent).join("/job/")
       : encodeURIComponent(request.jobName);
 
-    const endpoint = request.parameters && Object.keys(request.parameters).length > 0
-      ? `/job/${jobPath}/buildWithParameters`
-      : `/job/${jobPath}/build`;
+    const endpoint =
+      request.parameters && Object.keys(request.parameters).length > 0
+        ? `/job/${jobPath}/buildWithParameters`
+        : `/job/${jobPath}/build`;
 
-    const body = request.parameters && Object.keys(request.parameters).length > 0
-      ? new URLSearchParams(Object.entries(request.parameters).map(([k, v]) => [k, String(v)])).toString()
-      : "";
+    const body =
+      request.parameters && Object.keys(request.parameters).length > 0
+        ? new URLSearchParams(
+          Object.entries(request.parameters).map(([k, v]) => [k, String(v)]),
+        ).toString()
+        : "";
 
     await this.makeRequest(endpoint, {
       method: "POST",
@@ -249,11 +255,11 @@ export class JenkinsClient {
     });
 
     const queueItem = await this.getQueuedBuild(request.jobName);
-    
-    logger.audit("Build triggered", { 
-      jobName: request.jobName, 
+
+    logger.audit("Build triggered", {
+      jobName: request.jobName,
       queueId: queueItem?.id,
-      parameters: request.parameters 
+      parameters: request.parameters,
     });
 
     return {
@@ -267,22 +273,25 @@ export class JenkinsClient {
   /**
    * Get build status and details
    */
-  async getBuild(jobName: string, buildNumber: number | string): Promise<JenkinsBuild> {
+  async getBuild(
+    jobName: string,
+    buildNumber: number | string,
+  ): Promise<JenkinsBuild> {
     logger.info(`Fetching build: ${jobName}#${buildNumber}`);
 
-    const jobPath = jobName.includes('/') 
-      ? jobName.split('/').map(encodeURIComponent).join('/job/')
+    const jobPath = jobName.includes("/")
+      ? jobName.split("/").map(encodeURIComponent).join("/job/")
       : encodeURIComponent(jobName);
 
     const build = await this.makeRequest<JenkinsBuild>(
       `/job/${jobPath}/${buildNumber}/api/json`,
     );
 
-    logger.audit("Build details fetched", { 
-      jobName, 
-      buildNumber, 
+    logger.audit("Build details fetched", {
+      jobName,
+      buildNumber,
       result: build.result,
-      duration: build.duration 
+      duration: build.duration,
     });
 
     return build;
@@ -294,8 +303,8 @@ export class JenkinsClient {
   async stopBuild(jobName: string, buildNumber: number): Promise<void> {
     logger.info(`Stopping build: ${jobName}#${buildNumber}`);
 
-    const jobPath = jobName.includes('/') 
-      ? jobName.split('/').map(encodeURIComponent).join('/job/')
+    const jobPath = jobName.includes("/")
+      ? jobName.split("/").map(encodeURIComponent).join("/job/")
       : encodeURIComponent(jobName);
 
     await this.makeRequest(`/job/${jobPath}/${buildNumber}/stop`, {
@@ -309,24 +318,26 @@ export class JenkinsClient {
    * Get build console logs
    */
   async getBuildLogs(request: BuildLogsRequest): Promise<BuildLogsResponse> {
-    logger.info(`Fetching build logs: ${request.jobName}#${request.buildNumber}`);
+    logger.info(
+      `Fetching build logs: ${request.jobName}#${request.buildNumber}`,
+    );
 
-    const jobPath = request.jobName.includes('/') 
-      ? request.jobName.split('/').map(encodeURIComponent).join('/job/')
+    const jobPath = request.jobName.includes("/")
+      ? request.jobName.split("/").map(encodeURIComponent).join("/job/")
       : encodeURIComponent(request.jobName);
 
     let endpoint = `/job/${jobPath}/${request.buildNumber}/consoleText`;
-    
+
     if (request.start !== undefined) {
       endpoint += `?start=${request.start}`;
     }
 
     const logs = await this.makeRequest<string>(endpoint);
-    
-    logger.audit("Build logs fetched", { 
-      jobName: request.jobName, 
+
+    logger.audit("Build logs fetched", {
+      jobName: request.jobName,
       buildNumber: request.buildNumber,
-      logSize: logs.length 
+      logSize: logs.length,
     });
 
     return {
@@ -342,8 +353,8 @@ export class JenkinsClient {
   private async getQueuedBuild(jobName: string): Promise<QueueItem | null> {
     try {
       const queue = await this.getBuildQueue();
-      return queue.find(item => 
-        item.task?.name === jobName || 
+      return queue.find((item) =>
+        item.task?.name === jobName ||
         item.task?.url?.includes(`/job/${encodeURIComponent(jobName)}/`)
       ) || null;
     } catch (error) {
@@ -361,7 +372,9 @@ export class JenkinsClient {
    */
   async listNodes(): Promise<JenkinsNode[]> {
     logger.info("Fetching Jenkins nodes list");
-    const data = await this.makeRequest<{ computer: JenkinsNode[] }>("/computer/api/json");
+    const data = await this.makeRequest<{ computer: JenkinsNode[] }>(
+      "/computer/api/json",
+    );
     logger.audit("Nodes listed", { count: data.computer?.length || 0 });
     return data.computer || [];
   }
@@ -370,19 +383,19 @@ export class JenkinsClient {
    * Get detailed status of a specific node
    */
   async getNodeStatus(nodeName?: string): Promise<JenkinsNode> {
-    const endpoint = nodeName 
+    const endpoint = nodeName
       ? `/computer/${encodeURIComponent(nodeName)}/api/json`
       : "/computer/(master)/api/json";
-    
+
     logger.info(`Fetching node status: ${nodeName || "master"}`);
-    
+
     const node = await this.makeRequest<JenkinsNode>(endpoint);
-    logger.audit("Node status fetched", { 
-      nodeName: nodeName || "master", 
+    logger.audit("Node status fetched", {
+      nodeName: nodeName || "master",
       online: node.offline === false,
-      idle: node.idle 
+      idle: node.idle,
     });
-    
+
     return node;
   }
 
@@ -395,7 +408,9 @@ export class JenkinsClient {
    */
   async getBuildQueue(): Promise<QueueItem[]> {
     logger.info("Fetching build queue");
-    const data = await this.makeRequest<{ items: QueueItem[] }>("/queue/api/json");
+    const data = await this.makeRequest<{ items: QueueItem[] }>(
+      "/queue/api/json",
+    );
     logger.audit("Queue fetched", { queueLength: data.items?.length || 0 });
     return data.items || [];
   }
@@ -405,11 +420,11 @@ export class JenkinsClient {
    */
   async cancelQueueItem(queueId: number): Promise<void> {
     logger.info(`Cancelling queue item: ${queueId}`);
-    
+
     await this.makeRequest(`/queue/cancelItem?id=${queueId}`, {
       method: "POST",
     });
-    
+
     logger.audit("Queue item cancelled", { queueId });
   }
 
@@ -420,19 +435,21 @@ export class JenkinsClient {
   /**
    * Get Jenkins version and system information
    */
-  async getVersion(): Promise<{ version: string; [key: string]: string | number | boolean }> {
+  async getVersion(): Promise<
+    { version: string; [key: string]: string | number | boolean }
+  > {
     logger.info("Fetching Jenkins version");
-    
+
     try {
       const response = await fetch(`${this.jenkinsUrl}/api/json`, {
         method: "HEAD",
         headers: this.auth.getAuthHeaders() as HeadersInit,
       });
-      
+
       const version = response.headers.get("X-Jenkins") || "unknown";
-      
+
       logger.audit("Version fetched", { version });
-      
+
       return {
         version,
         url: this.jenkinsUrl,

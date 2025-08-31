@@ -1,5 +1,9 @@
 name: Build and Release
 
+# This workflow uses Makefile commands for consistency with local development.
+# This makes it easy to fork and adapt to other CI/CD systems - just use the same make commands!
+# Available commands: make help, make quality, make build-all, make docker-build, make release
+
 on:
   push:
     tags:
@@ -13,9 +17,32 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  # Quality and validation using Makefile
+  quality-check:
+    name: Quality Assurance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: '2.0.0'
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Run comprehensive quality checks
+        run: make quality
+
+      - name: Show project information
+        run: make info
+
   build-binaries:
     name: Build Cross-Platform Binaries
     runs-on: ${{ matrix.os }}
+    needs: quality-check
     strategy:
       matrix:
         include:
@@ -41,20 +68,42 @@ jobs:
         with:
           deno-version: '2.0.0'
 
-      - name: Check TypeScript
-        run: deno task check
+      - name: Install dependencies
+        run: make install
 
-      - name: Run tests
-        run: deno task test
-        continue-on-error: true
+      - name: Run quality checks
+        run: make quality
 
-      - name: Build binary
+      - name: Build binary for target platform
         run: |
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            deno compile --allow-net --allow-env --allow-read --allow-write --target ${{ matrix.target }} --output ${{ matrix.artifact }} src/simple-server.ts
-          else
-            deno compile --allow-net --allow-env --allow-read --allow-write --target ${{ matrix.target }} --output ${{ matrix.artifact }} src/simple-server.ts
-          fi
+          case "${{ matrix.os }}" in
+            "ubuntu-latest")
+              make build-linux
+              # Only move if source and destination are different
+              if [ "jenkins-mcp-server-linux-x64" != "${{ matrix.artifact }}" ]; then
+                mv jenkins-mcp-server-linux-x64 ${{ matrix.artifact }}
+              fi
+              ;;
+            "macos-latest")
+              if [ "${{ matrix.target }}" = "aarch64-apple-darwin" ]; then
+                make build-macos-arm
+                if [ "jenkins-mcp-server-macos-arm64" != "${{ matrix.artifact }}" ]; then
+                  mv jenkins-mcp-server-macos-arm64 ${{ matrix.artifact }}
+                fi
+              else
+                make build-macos
+                if [ "jenkins-mcp-server-macos-x64" != "${{ matrix.artifact }}" ]; then
+                  mv jenkins-mcp-server-macos-x64 ${{ matrix.artifact }}
+                fi
+              fi
+              ;;
+            "windows-latest")
+              make build-windows
+              if [ "jenkins-mcp-server-windows-x64.exe" != "${{ matrix.artifact }}" ]; then
+                mv jenkins-mcp-server-windows-x64.exe ${{ matrix.artifact }}
+              fi
+              ;;
+          esac
         shell: bash
 
       - name: Generate checksums
@@ -77,6 +126,7 @@ jobs:
   build-docker:
     name: Build Docker Image
     runs-on: ubuntu-latest
+    needs: quality-check
     permissions:
       contents: read
       packages: write
@@ -108,16 +158,20 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Build Docker image using Makefile
+        run: make docker-build
+
+      - name: Tag and push Docker image
+        if: github.event_name != 'pull_request'
+        run: |
+          # Tag the locally built image with registry tags
+          echo "${{ steps.meta.outputs.tags }}" | while read -r tag; do
+            if [ -n "$tag" ]; then
+              echo "Tagging and pushing: $tag"
+              docker tag jenkins-mcp-server:latest "$tag"
+              docker push "$tag"
+            fi
+          done
 
   release:
     name: Create Release
@@ -130,6 +184,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: '2.0.0'
+
+      - name: Prepare release using Makefile
+        run: |
+          make install
+          make release
+          echo "Release preparation completed using 'make release'"
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4

@@ -517,7 +517,12 @@ export interface AgentRecoveryResponse {
 export interface AgentIssueDetection {
   nodeName: string;
   issues: {
-    type: "connection" | "performance" | "build_failure" | "resource" | "service";
+    type:
+      | "connection"
+      | "performance"
+      | "build_failure"
+      | "resource"
+      | "service";
     severity: "low" | "medium" | "high" | "critical";
     description: string;
     detected: string;

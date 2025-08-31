@@ -2,7 +2,7 @@
   "name": "jenkins-mcp-server",
   "version": "1.0.0",
   "description": "Model Context Protocol server for Jenkins automation and management",
-  "exports": "./src/index.ts",
+  "exports": "./src/simple-server.ts",
   "tasks": {
     "dev": "deno run --allow-net --allow-env --allow-read --allow-write src/simple-server.ts",
     "start": "deno run --allow-net --allow-env --allow-read --allow-write src/simple-server.ts",

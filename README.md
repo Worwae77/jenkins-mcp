@@ -1,20 +1,40 @@
 # Jenkins MCP Server
 
-A Model Context Protocol (MCP) server for Jenkins automation and management in
-enterprise environments.
-
-**Status:** ✅ MVP Complete | **Version:** 1.0.0 | **Last Updated:** August 31,
-2025
-
-# Jenkins MCP Server
-
 A Model Context Protocol (MCP) server for Jenkins automation and management in enterprise environments.
 
-**Status:** ✅ Production Ready | **Version:** 1.0.0 | **Last Updated:** August 31, 2025
+**Status:** ✅ Production Ready | **Version:** 1.0.0 | **Last Updated:** August 31, 2025  
+**Build System:** Makefile (Modern) + Shell Scripts (Legacy) | **CI/CD:** GitHub Actions ✅
 
 ## 🚀 Quick Start
 
-### Installation Options
+### 1. Clone and Setup
+```bash
+git clone <your-repo-url>
+cd jenkins-mcp
+make install        # Setup dependencies and environment
+```
+
+### 2. Configure Environment
+```bash
+# Edit .env.local with your Jenkins details
+JENKINS_URL=https://your-jenkins.com
+JENKINS_USERNAME=your-username  
+JENKINS_API_TOKEN=your-api-token
+```
+
+### 3. Start the Server
+```bash
+make start          # Start the MCP server
+```
+
+### 4. Integrate with AI Tools
+- **Claude Desktop**: Copy configuration from `.vscode/claude_desktop_config.json`
+- **VS Code**: Open workspace - MCP configuration auto-detected
+- **Other Tools**: Use Docker image or standalone binary
+
+---
+
+## 📦 Alternative Installation Options
 
 #### Option 1: Docker (Recommended) 🐳
 
@@ -69,30 +89,49 @@ JENKINS_API_TOKEN=your-api-token \
 **For development and customization:**
 
 ```bash
-# Prerequisites: Deno runtime v1.37+
+# Prerequisites: Deno runtime v2.0+ and make
 # Clone and setup
 git clone <your-repo-url>
 cd jenkins-mcp
 
-# Create environment configuration
-cp .env.example .env.local
-# Edit .env.local with your Jenkins details
+# Quick setup (installs dependencies and creates .env.local)
+make install
 
+# Edit .env.local with your Jenkins details
 # Start the server
-./start-server.sh
+make start
 ```
 
-### Build & Test
+### Development Commands
 
 ```bash
-# Check TypeScript compilation
-deno task check
+# Show all available commands
+make help
 
-# Build executable
-deno task build
+# Development workflow
+make install        # Setup dependencies and environment
+make dev           # Start with auto-reload
+make start         # Start the server
 
-# Format and lint code
-deno task fmt && deno task lint
+# Code quality
+make check         # TypeScript compilation check
+make fmt           # Format code
+make lint          # Lint code  
+make quality       # Run all quality checks
+
+# Building
+make build         # Build for current platform
+make build-all     # Build for all platforms
+make release       # Quality checks + all builds
+
+# Docker operations
+make docker-build  # Build Docker image
+make docker-test   # Test Docker deployment
+make docker-run    # Run Docker container
+
+# Testing
+make test          # Run unit tests
+make deploy-test   # Test all deployment methods
 ```
 
 ## 🤖 AI Integration
@@ -175,7 +214,26 @@ deno task fmt && deno task lint
 
 2. **Configure Workspace**: The `.vscode/mcp.json` file will be automatically detected by MCP-compatible extensions
 
-3. **Use AI Features**: Access Jenkins operations through AI chat interfaces
+3. **VS Code Development Setup**: This workspace includes pre-configured VS Code integration:
+   - **Ready-to-use tasks**: `Ctrl/Cmd + Shift + P` → "Tasks: Run Task"
+     - Start Jenkins MCP Server
+     - Check TypeScript compilation  
+     - Test MCP Server with sample requests
+     - Build executable
+     - Format and lint code
+   - **Debug configuration**: Press `F5` to start debugging with breakpoints
+   - **Environment auto-loading**: Credentials from `.env.local` automatically loaded
+
+4. **Quick VS Code Setup**: 
+   ```bash
+   # Copy pre-configured settings (if needed)
+   cp .vscode/claude_desktop_config.json ~/Library/Application\ Support/Claude/claude_desktop_config.json
+   
+   # Update paths in the configuration to match your system
+   # Then restart Claude Desktop
+   ```
+
+5. **Use AI Features**: Access Jenkins operations through AI chat interfaces
 
 ### Example AI Interactions
 
@@ -285,20 +343,22 @@ Enable detailed logging by setting:
 
 ```bash
 export LOG_LEVEL=debug
-./start-server.sh
+make start
 ```
 
 ### Verification Commands
 
 ```bash
-# Test basic functionality
-echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | ./start-server.sh
+# Quick testing with Makefile
+make help           # Show all available commands with descriptions
+make test           # Run the test suite  
+make deploy-test    # Comprehensive deployment testing
 
-# Test Jenkins connection
-echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"jenkins_get_version","arguments":{}}}' | ./start-server.sh
+# Manual JSON-RPC testing (if needed)
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | make start
 
-# Test job listing
-echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"jenkins_list_jobs","arguments":{}}}' | ./start-server.sh
+# VS Code integration testing
+# Use Ctrl/Cmd + Shift + P → "Tasks: Run Task" → "Test MCP Server"
 ```
 
 ## Development
@@ -307,8 +367,8 @@ echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"jenkins_li
 
 ```text
 jenkins-mcp/
-├── src/
-│   ├── simple-server.ts      # Main MCP server (production)
+├── src/                      # Main source code
+│   ├── simple-server.ts      # Main MCP server (production v1.0)
 │   ├── jenkins/              # Jenkins integration
 │   │   ├── client.ts         # Jenkins API client
 │   │   ├── types.ts          # Type definitions
@@ -317,36 +377,38 @@ jenkins-mcp/
 │       ├── logger.ts         # Logging utilities
 │       ├── validation.ts     # Input validation
 │       └── config.ts         # Configuration management
+├── tests/                    # Test suite
+│   ├── basic.test.ts         # Basic functionality tests
+│   ├── config.test.ts        # Configuration tests
+│   ├── validation.test.ts    # Validation tests
+│   └── README.md             # Test documentation
+├── .vscode/                  # VS Code configuration
+│   ├── mcp.json              # MCP client configuration
+│   ├── claude_desktop_config.json # Ready-to-use Claude config
+│   ├── tasks.json            # VS Code development tasks
+│   ├── launch.json           # Debug configurations
+│   └── SETUP.md              # Detailed VS Code setup guide
+├── .github/workflows/        # GitHub Actions CI/CD
+├── docs/                     # Additional documentation
 ├── experimental/             # Experimental v1.1 features
-│   ├── index.ts             # Advanced MCP server
-│   ├── tools/               # Extended tool implementations
-│   ├── resources/           # MCP resources
-│   └── prompts/             # MCP prompts
-├── ansible/                 # Infrastructure automation
-├── .vscode/                 # VS Code configuration
-│   ├── mcp.json            # MCP client configuration
-│   └── tasks.json          # Build tasks
-├── docs/                    # Additional documentation
-├── .env.local              # Environment configuration
-├── start-server.sh         # Server startup script
-├── deno.json              # Deno configuration
-└── README.md              # This file
+├── ansible/                  # Infrastructure automation
+├── .env.local                # Environment configuration
+├── Makefile                  # Modern build system
+├── MIGRATION.md              # Shell script → Makefile migration guide
+├── deno.json                 # Deno configuration
+└── README.md                 # This file
 ```
 
 ### Running Tests
 
 ```bash
-# Type checking
-deno task check
-
-# Build executable
-deno task build
-
-# Format code
-deno task fmt
-
-# Lint code
-deno task lint
+# Using Makefile (recommended)
+make test          # Run test suite
+make check         # TypeScript compilation check  
+make fmt           # Format code
+make lint          # Lint code
+make quality       # Run all quality checks (fmt + lint + check + test)
+make build         # Build executable
 ```
 
 ## 🔐 Security & Configuration
@@ -382,22 +444,129 @@ LOG_LEVEL=info                 # Logging level (debug, info, warn, error)
 
 ## 📚 Documentation
 
+### 🏗️ Build System
+
+This project uses a **modern Makefile-based build system** for consistency and ease of use:
+
+### 🔄 CI/CD Integration
+
+This project uses **Makefile-based CI/CD** for consistency across all platforms:
+
+```bash
+# Basic CI pipeline for any CI/CD system
+make install    # Setup environment  
+make quality    # Run all quality checks
+make build-all  # Build all platforms
+```
+
+**📖 [Complete CI/CD Integration Guide](docs/CI_CD_INTEGRATION.md)** - Examples for GitHub Actions, GitLab CI, Jenkins, Azure DevOps, CircleCI, and more!
+
+- **✅ Makefile**: Unified build system with 20+ targets
+- **📋 Migration Guide**: See `MIGRATION.md` for shell script migration details
+- **🎯 Benefits**: Standardized commands, cross-platform builds, environment validation
+
+**Common Commands:**
+```bash
+make install       # Setup environment
+make start         # Start server
+make build         # Build executable
+make quality       # All quality checks
+make test          # Run test suite
+```
+
+### Additional Documentation
+
 Additional documentation is available in the [`/docs`](docs/) directory:
 
 - **[API Reference](docs/api/API_REFERENCE.md)**: Complete tool documentation
 - **[System Architecture](docs/architecture/SYSTEM_ARCHITECTURE.md)**: Technical design
 - **[Deployment Guide](docs/guides/DEPLOYMENT.md)**: Production deployment
 - **[Contributing Guidelines](docs/CONTRIBUTING.md)**: Development workflow
+- **[VS Code Setup Guide](.vscode/SETUP.md)**: Comprehensive VS Code integration
+
+### 🚀 CI/CD Pipeline
+
+**GitHub Actions Status**: ✅ **Fully Operational**
+
+Our CI/CD pipeline automatically builds and tests across multiple platforms:
+
+- **✅ Multi-Platform Builds**: Linux x64, macOS x64/ARM64, Windows x64
+- **✅ Docker Multi-Architecture**: `linux/amd64`, `linux/arm64`
+- **✅ Automated Testing**: TypeScript compilation, linting, formatting
+- **✅ Artifact Generation**: Standalone binaries for all platforms
+- **✅ Container Registry**: Docker images published to GitHub Container Registry
+
+**Recent Improvements:**
+- Upgraded to Deno 2.0.0 for lockfile v4 compatibility
+- Fixed ARM64 cross-compilation issues
+- Enhanced build caching and performance
+
+**Workflow Triggers:**
+- Push to `main` branch
+- Pull requests
+- Manual workflow dispatch
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes and add tests
-4. Ensure code quality: `deno task fmt && deno task lint && deno task check`
-5. Commit your changes: `git commit -m 'Add amazing feature'`
-6. Push to the branch: `git push origin feature/amazing-feature`
-7. Open a Pull Request
+### Development Workflow
+
+1. **Fork and Clone**: Fork the repository and clone your fork
+   ```bash
+   git clone https://github.com/your-username/jenkins-mcp.git
+   cd jenkins-mcp
+   ```
+
+2. **Setup Development Environment**: 
+   ```bash
+   make install        # Install dependencies and setup .env.local
+   make dev           # Start development server with auto-reload
+   ```
+
+3. **Create Feature Branch**: 
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+
+4. **Make Changes and Test**:
+   ```bash
+   make quality       # Run all quality checks (format, lint, check)
+   make test          # Run unit tests
+   make build         # Verify build works
+   ```
+
+5. **Commit Changes**:
+   ```bash
+   git add .
+   git commit -m 'Add amazing feature'
+   ```
+
+6. **Push and Create PR**:
+   ```bash
+   git push origin feature/amazing-feature
+   # Then create Pull Request on GitHub
+   ```
+
+### Code Quality Standards
+
+- **TypeScript**: Strict typing with Deno's built-in checker
+- **Formatting**: Use `make fmt` (enforced by CI)
+- **Linting**: Use `make lint` (enforced by CI)
+- **Testing**: Add tests for new features
+- **Documentation**: Update relevant docs
+
+### Available Development Commands
+
+```bash
+make help          # Show all available commands
+make install       # Setup development environment
+make dev           # Development server with auto-reload
+make start         # Start the server
+make quality       # All quality checks (fmt + lint + check + test)
+make test          # Run test suite
+make build         # Build executable
+make docker-build  # Build Docker image
+make clean         # Clean build artifacts
+```
 
 ## 📄 License
 

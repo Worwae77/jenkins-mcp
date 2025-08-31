@@ -83,7 +83,9 @@ export function validateConfig(): void {
   }
 
   if (config.jenkinsPassword && !config.jenkinsUsername) {
-    throw new Error("JENKINS_USERNAME is required when using JENKINS_API_PASSWORD");
+    throw new Error(
+      "JENKINS_USERNAME is required when using JENKINS_API_PASSWORD",
+    );
   }
 
   try {

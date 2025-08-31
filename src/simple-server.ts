@@ -122,7 +122,8 @@ const TOOLS: Tool[] = [
         },
         buildNumber: {
           type: ["string", "number"],
-          description: "Build number (or 'lastBuild', 'lastSuccessfulBuild', etc.)",
+          description:
+            "Build number (or 'lastBuild', 'lastSuccessfulBuild', etc.)",
         },
         start: {
           type: "number",
@@ -182,7 +183,8 @@ const TOOLS: Tool[] = [
         },
         buildNumber: {
           type: ["string", "number"],
-          description: "Build number (or 'lastBuild', 'lastSuccessfulBuild', etc.)",
+          description:
+            "Build number (or 'lastBuild', 'lastSuccessfulBuild', etc.)",
         },
       },
       required: ["jobName", "buildNumber"],
@@ -225,7 +227,8 @@ const TOOLS: Tool[] = [
       properties: {
         nodeName: {
           type: "string",
-          description: "Name of the Jenkins node (optional, defaults to master)",
+          description:
+            "Name of the Jenkins node (optional, defaults to master)",
         },
       },
       additionalProperties: false,
@@ -279,7 +282,7 @@ const TOOLS: Tool[] = [
           description: "Force restart even if agent appears healthy",
         },
         useAnsible: {
-          type: "boolean", 
+          type: "boolean",
           description: "Use Ansible playbooks for declarative restart (recommended for production)",
         },
         ansiblePlaybook: {
@@ -287,7 +290,7 @@ const TOOLS: Tool[] = [
           description: "Custom Ansible playbook path (relative to ansible/playbooks/)",
         },
         ansibleInventory: {
-          type: "string", 
+          type: "string",
           description: "Custom Ansible inventory file path (defaults to ansible/inventory.ini)",
         },
         ansibleVariables: {
@@ -301,7 +304,7 @@ const TOOLS: Tool[] = [
           description: "Predefined restart template for common scenarios",
         },
         templateVariables: {
-          type: "object", 
+          type: "object",
           description: "Variables to override in the selected template",
           additionalProperties: true,
         },
@@ -513,12 +516,13 @@ async function handleTool(
     }
 
     case "jenkins_get_build_logs": {
-      const { jobName, buildNumber, start = 0, progressiveLog = false } = args as {
-        jobName: string;
-        buildNumber: string | number;
-        start?: number;
-        progressiveLog?: boolean;
-      };
+      const { jobName, buildNumber, start = 0, progressiveLog = false } =
+        args as {
+          jobName: string;
+          buildNumber: string | number;
+          start?: number;
+          progressiveLog?: boolean;
+        };
       validateJobName(jobName);
 
       await jenkinsClient.initialize();
@@ -550,16 +554,23 @@ async function handleTool(
       validateJobName(jobName);
 
       await jenkinsClient.initialize();
-      
+
       // Generate XML configuration
       let configXml: string;
-      
+
       if (jobType === "freestyle") {
-        const escapedDescription = (description || `Created via MCP - ${new Date().toISOString()}`).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const buildSteps = (commands || []).map(cmd => 
-          `    <hudson.tasks.Shell><command>${cmd.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</command></hudson.tasks.Shell>`
-        ).join('\n');
-        
+        const escapedDescription =
+          (description || `Created via MCP - ${new Date().toISOString()}`)
+            .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const buildSteps = (commands || []).map((cmd) =>
+          `    <hudson.tasks.Shell><command>${
+            cmd.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(
+              />/g,
+              "&gt;",
+            )
+          }</command></hudson.tasks.Shell>`
+        ).join("\n");
+
         configXml = `<?xml version='1.1' encoding='UTF-8'?>
 <project>
   <description>${escapedDescription}</description>
@@ -579,9 +590,14 @@ ${buildSteps}
   <buildWrappers/>
 </project>`;
       } else {
-        const escapedDescription = (description || `Created via MCP - ${new Date().toISOString()}`).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const escapedScript = (script || "echo 'Hello from pipeline'").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        
+        const escapedDescription =
+          (description || `Created via MCP - ${new Date().toISOString()}`)
+            .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const escapedScript = (script || "echo 'Hello from pipeline'").replace(
+          /&/g,
+          "&amp;",
+        ).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
         configXml = `<?xml version='1.1' encoding='UTF-8'?>
 <flow-definition plugin="workflow-job">
   <description>${escapedDescription}</description>
@@ -595,14 +611,16 @@ ${buildSteps}
   <disabled>false</disabled>
 </flow-definition>`;
       }
-      
+
       const result = await jenkinsClient.createJob(jobName, configXml);
 
       return {
         content: [
           {
             type: "text",
-            text: `Job '${jobName}' created successfully: ${JSON.stringify(result, null, 2)}`,
+            text: `Job '${jobName}' created successfully: ${
+              JSON.stringify(result, null, 2)
+            }`,
           },
         ],
       };
@@ -642,7 +660,9 @@ ${buildSteps}
         content: [
           {
             type: "text",
-            text: `Build ${buildNumber} for job '${jobName}' stopped: ${JSON.stringify(result, null, 2)}`,
+            text: `Build ${buildNumber} for job '${jobName}' stopped: ${
+              JSON.stringify(result, null, 2)
+            }`,
           },
         ],
       };
@@ -666,7 +686,9 @@ ${buildSteps}
       const { nodeName } = args as { nodeName?: string };
 
       await jenkinsClient.initialize();
-      const nodeStatus = await jenkinsClient.getNodeStatus(nodeName || undefined);
+      const nodeStatus = await jenkinsClient.getNodeStatus(
+        nodeName || undefined,
+      );
 
       return {
         content: [
@@ -702,7 +724,9 @@ ${buildSteps}
         content: [
           {
             type: "text",
-            text: `Queue item ${queueId} cancelled: ${JSON.stringify(result, null, 2)}`,
+            text: `Queue item ${queueId} cancelled: ${
+              JSON.stringify(result, null, 2)
+            }`,
           },
         ],
       };
@@ -713,15 +737,15 @@ ${buildSteps}
     // Uncomment and complete implementation in next release (v1.1)
     /*
     case "jenkins_restart_agent": {
-      const { 
-        nodeName, 
-        platform = "auto", 
-        forceRestart, 
-        useAnsible, 
-        ansiblePlaybook, 
-        ansibleInventory, 
-        ansibleVariables, 
-        templateName, 
+      const {
+        nodeName,
+        platform = "auto",
+        forceRestart,
+        useAnsible,
+        ansiblePlaybook,
+        ansibleInventory,
+        ansibleVariables,
+        templateName,
         templateVariables,
         bypassPrivilegeCheck = true,
         userRole,
@@ -738,8 +762,8 @@ ${buildSteps}
       };
 
       await jenkinsClient.initialize();
-      
-      // Build request object  
+
+      // Build request object
       const restartRequest: any = {
         nodeName,
         platform,
@@ -753,19 +777,19 @@ ${buildSteps}
       // Add Ansible support if requested
       if (useAnsible || ansiblePlaybook || templateName) {
         restartRequest.useAnsible = true;
-        
+
         if (ansiblePlaybook) {
           restartRequest.ansiblePlaybook = ansiblePlaybook;
         }
-        
+
         if (ansibleInventory) {
           restartRequest.ansibleInventory = ansibleInventory;
         }
-        
+
         if (ansibleVariables) {
           restartRequest.ansibleVariables = ansibleVariables;
         }
-        
+
         if (templateName) {
           restartRequest.templateConfig = {
             templateName,
@@ -976,7 +1000,8 @@ Please provide guidance on:
 Please provide practical examples and code snippets where applicable.`;
 
       return {
-        description: `Jenkins Pipeline best practices for ${pipelineTypeStr} pipelines with ${technologyStr}`,
+        description:
+          `Jenkins Pipeline best practices for ${pipelineTypeStr} pipelines with ${technologyStr}`,
         messages: [
           {
             role: "user",
