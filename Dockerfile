@@ -1,5 +1,5 @@
 # Multi-stage build for Jenkins MCP Server
-FROM denoland/deno:1.40.0 AS builder
+FROM denoland/deno:2.0.0 AS builder
 
 # Set working directory
 WORKDIR /app
