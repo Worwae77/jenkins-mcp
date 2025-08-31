@@ -18,6 +18,8 @@ jenkins-mcp-server
 .vscode/settings.json
 .vscode/mcp.json.local
 .vscode/*.backup
+.vscode/claude_desktop_config.json.local
+.vscode/launch.json.local
 .idea/
 *.swp
 *.swo
