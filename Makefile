@@ -70,15 +70,15 @@ start: check-env ## Start the MCP server
 ## Code Quality
 check: ## Check TypeScript compilation
 	@echo "$(GREEN)Checking TypeScript...$(NC)"
-	@deno check src/**/*.ts
+	@find src -name "*.ts" -exec deno check {} +
 
 fmt: ## Format code
 	@echo "$(GREEN)Formatting code...$(NC)"
-	@deno fmt src/**/*.ts
+	@find src -name "*.ts" -exec deno fmt {} +
 
 lint: ## Lint code
 	@echo "$(GREEN)Linting code...$(NC)"
-	@deno lint src/**/*.ts
+	@find src -name "*.ts" -exec deno lint {} +
 
 test: ## Run tests
 	@echo "$(GREEN)Running tests...$(NC)"
