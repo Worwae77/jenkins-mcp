@@ -3,7 +3,7 @@
 A Model Context Protocol (MCP) server for Jenkins automation and management in
 enterprise environments.
 
-**Status:** ✅ MVP Complete | **Version:** 1.0.0 | **Last Updated:** August 30,
+**Status:** ✅ MVP Complete | **Version:** 1.0.0 | **Last Updated:** August 31,
 2025
 
 # Jenkins MCP Server
