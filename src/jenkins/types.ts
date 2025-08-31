@@ -367,7 +367,9 @@ export interface JobTriggerRequest {
 }
 
 export interface JobTriggerResponse {
-  queueItem: QueueItem;
+  success: boolean;
+  jobName: string;
+  queueItem?: QueueItem;
   message: string;
 }
 
@@ -420,6 +422,19 @@ export interface AgentRestartRequest {
   platform: "linux" | "windows" | "auto";
   force?: boolean;
   serviceCommand?: string;
+  useAnsible?: boolean;
+  ansiblePlaybook?: string;
+  ansibleInventory?: string;
+  ansibleVariables?: Record<string, string | number | boolean>;
+  templateConfig?: {
+    templateName: string;
+    variables: Record<string, string | number | boolean>;
+  };
+  // Privilege and authorization options
+  bypassPrivilegeCheck?: boolean;
+  userRole?: "admin" | "user" | "operator";
+  requireConfirmation?: boolean;
+  dryRun?: boolean;
 }
 
 export interface AgentRestartResponse {
@@ -430,6 +445,14 @@ export interface AgentRestartResponse {
   commandExecuted: string;
   output?: string;
   error?: string;
+  ansiblePlaybook?: string;
+  templateUsed?: string;
+  playbookOutput?: string;
+  executionMethod: "direct" | "ansible" | "template";
+  privilegeCheckBypassed?: boolean;
+  userRole?: string;
+  jenkinsPlatformResponse?: string;
+  dryRunResult?: boolean;
 }
 
 export interface AgentDiagnosticsRequest {
@@ -526,6 +549,6 @@ export interface AuditLogEntry {
   action: string;
   target: string;
   result: "success" | "failed" | "denied";
-  details: Record<string, any>;
+  details: Record<string, string | number | boolean>;
   ipAddress?: string;
 }

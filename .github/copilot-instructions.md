@@ -1,54 +1,105 @@
-<!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
-- [x] Verify that the copilot-instructions.md file in the .github directory is created.
+# Jenkins MCP Server - Copilot Instructions
 
-- [x] Clarify Project Requirements
-	<!-- Jenkins MCP Server with TypeScript and Deno for enterprise Jenkins management -->
+## Project Overview
 
-- [ ] Scaffold the Project
-	<!--
-	Ensure that the previous step has been marked as completed.
-	Call project setup tool with projectType parameter.
-	Run scaffolding command to create project files and folders.
-	Use '.' as the working directory.
-	If no appropriate projectType is available, search documentation using available tools.
-	Otherwise, create the project structure manually using available file creation tools.
-	-->
+**Jenkins MCP Server v1.0** - A production-ready Model Context Protocol server for Jenkins automation, built with Deno and TypeScript.
 
-- [ ] Customize the Project
-	<!--
-	Verify that all previous steps have been completed successfully and you have marked the step as completed.
-	Develop a plan to modify codebase according to user requirements.
-	Apply modifications using appropriate tools and user-provided references.
-	Skip this step for "Hello World" projects.
-	-->
+## Architecture & Technology Stack
 
-- [ ] Install Required Extensions
-	<!-- ONLY install extensions provided mentioned in the get_project_setup_info. Skip this step otherwise and mark as completed. -->
+- **Runtime**: Deno v1.37+ with TypeScript
+- **Protocol**: Model Context Protocol (MCP) with JSON-RPC
+- **Primary Server**: `src/simple-server.ts` (production v1.0)
+- **Experimental Features**: `experimental/` directory (v1.1 features)
+- **Infrastructure**: Ansible playbooks in `ansible/` directory
 
-- [ ] Compile the Project
-	<!--
-	Verify that all previous steps have been completed.
-	Install any missing dependencies.
-	Run diagnostics and resolve any issues.
-	Check for markdown files in project folder for relevant instructions on how to do this.
-	-->
+## Current Project State
 
-- [ ] Create and Run Task
-	<!--
-	Verify that all previous steps have been completed.
-	Check https://code.visualstudio.com/docs/debugtest/tasks to determine if the project needs a task. If so, use the create_and_run_task to create and launch a task based on package.json, README.md, and project structure.
-	Skip this step otherwise.
-	 -->
+✅ **Production Ready**: Core MCP server operational with 12 Jenkins tools
+✅ **Documentation Consolidated**: Single README.md as source of truth
+✅ **Build System**: Deno tasks for build, check, lint, format
+✅ **AI Integration**: Claude Desktop and VS Code MCP configurations tested
+✅ **Authentication**: Jenkins API token and username/password support
 
-- [ ] Launch the Project
-	<!--
-	Verify that all previous steps have been completed.
-	Prompt user for debug mode, launch only if confirmed.
-	 -->
+## Key Files & Structure
 
-- [ ] Ensure Documentation is Complete
-	<!--
-	Verify that all previous steps have been completed.
-	Verify that README.md and the copilot-instructions.md file in the .github directory exists and contains current project information.
-	Clean up the copilot-instructions.md file in the .github directory by removing all HTML comments.
-	 -->
+```
+jenkins-mcp/
+├── README.md                    # 📖 PRIMARY documentation (start here)
+├── src/simple-server.ts         # 🚀 Production MCP server v1.0
+├── src/jenkins/                 # Jenkins API client & authentication
+├── src/utils/                   # Configuration, logging, validation
+├── experimental/                # 🧪 v1.1 experimental features
+├── ansible/                     # 🏗️ Infrastructure automation
+├── .vscode/mcp.json            # VS Code MCP configuration
+├── .env.local                  # Environment configuration
+└── docs/                       # Technical reference documentation
+```
+
+## Development Guidelines
+
+### Code Quality Standards
+- **TypeScript**: Strict typing with Deno's built-in type checker
+- **Formatting**: Use `deno task fmt` for consistent code style
+- **Linting**: Use `deno task lint` for code quality
+- **Building**: Use `deno task build` to create standalone executable
+
+### MCP Tool Implementation
+- All tools follow Jenkins API patterns with proper error handling
+- Tools return structured JSON responses with comprehensive logging
+- Authentication handled centrally through `src/jenkins/auth.ts`
+- Input validation via `src/utils/validation.ts`
+
+### Testing & Verification
+- Use `./start-server.sh` for testing with environment variables
+- Test MCP protocol with: `echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | ./start-server.sh`
+- Build verification: `deno task build` should produce working executable
+
+## Documentation Philosophy
+
+- **README.md is primary**: All essential information in main README
+- **Consolidated approach**: No scattered documentation
+- **Tested examples**: All configuration examples verified working
+- **Clear navigation**: Logical flow from basic to advanced topics
+
+## Common Tasks
+
+### Development Workflow
+```bash
+# Setup
+cp .env.example .env.local  # Configure environment
+deno task check             # Verify TypeScript
+deno task build             # Build executable
+
+# Testing
+./start-server.sh           # Start with env variables
+deno task fmt && deno task lint  # Code quality
+```
+
+### Adding New MCP Tools
+1. Implement in `src/simple-server.ts` following existing patterns
+2. Add Jenkins API calls using `src/jenkins/client.ts`
+3. Include proper error handling and logging
+4. Test with JSON-RPC protocol
+5. Update README.md tool list
+
+### MCP Protocol Implementation
+- Use `@modelcontextprotocol/sdk` for protocol handling
+- Implement `tools/list`, `tools/call` methods
+- Return proper JSON-RPC responses with error handling
+- Support `resources` and `prompts` for v1.1 features
+
+## AI Integration Context
+
+This project enables AI assistants to interact with Jenkins through:
+- **12 production tools**: job management, builds, nodes, queue operations
+- **Claude Desktop integration**: Tested configuration in README.md
+- **VS Code MCP support**: Automatic detection via `.vscode/mcp.json`
+- **Secure authentication**: API tokens with comprehensive error handling
+
+## Version Strategy
+
+- **v1.0 (Production)**: `src/simple-server.ts` with 12 core tools
+- **v1.1 (Experimental)**: `experimental/` with advanced features
+- **Infrastructure**: `ansible/` for enterprise deployment
+
+When working on this project, prioritize the production v1.0 codebase in `src/` and refer to README.md as the primary documentation source.

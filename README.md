@@ -6,31 +6,206 @@ enterprise environments.
 **Status:** ✅ MVP Complete | **Version:** 1.0.0 | **Last Updated:** August 30,
 2025
 
-## 📚 Documentation
+# Jenkins MCP Server
 
-**Complete documentation is available in the [`/docs`](docs/) directory:**
+A Model Context Protocol (MCP) server for Jenkins automation and management in enterprise environments.
 
-| Document                                                               | Purpose                            | Audience                 |
-| ---------------------------------------------------------------------- | ---------------------------------- | ------------------------ |
-| **[📋 Documentation Index](docs/README.md)**                           | Complete documentation overview    | All users                |
-| **[📖 Software Requirements](docs/SRS.md)**                            | Formal requirements specification  | PM, Stakeholders         |
-| **[🏗️ System Architecture](docs/architecture/SYSTEM_ARCHITECTURE.md)** | Technical design and architecture  | Developers, Architects   |
-| **[🔧 API Reference](docs/api/API_REFERENCE.md)**                      | Complete API documentation         | Developers, Integrators  |
-| **[🚀 Deployment Guide](docs/guides/DEPLOYMENT.md)**                   | Installation and deployment        | DevOps, SysAdmins        |
-| **[🛠️ Troubleshooting Guide](docs/guides/TROUBLESHOOTING.md)**         | Problem diagnosis and solutions    | Support, Operations      |
-| **[🤝 Contributing Guidelines](docs/CONTRIBUTING.md)**                 | Development workflow and standards | Contributors, Developers |
+**Status:** ✅ Production Ready | **Version:** 1.0.0 | **Last Updated:** August 31, 2025
+
+## 🚀 Quick Start
+
+### Installation Options
+
+#### Option 1: Docker (Recommended) 🐳
+
+**No Deno installation required - just Docker!**
+
+```bash
+# Pull the image
+docker pull ghcr.io/your-org/jenkins-mcp-server:latest
+
+# Run with environment variables
+docker run -e JENKINS_URL=https://your-jenkins.com \
+           -e JENKINS_USERNAME=your-username \
+           -e JENKINS_API_TOKEN=your-api-token \
+           -i ghcr.io/your-org/jenkins-mcp-server:latest
+
+# Or use docker-compose
+wget https://raw.githubusercontent.com/your-org/jenkins-mcp-server/main/docker-compose.yml
+# Edit environment variables in docker-compose.yml
+docker-compose up
+```
+
+#### Option 2: Standalone Binary 📦
+
+**No runtime dependencies - self-contained executable!**
+
+```bash
+# Download for your platform from GitHub Releases
+# Linux x64
+curl -L -o jenkins-mcp-server https://github.com/your-org/jenkins-mcp-server/releases/latest/download/jenkins-mcp-server-linux-x64
+
+# macOS x64
+curl -L -o jenkins-mcp-server https://github.com/your-org/jenkins-mcp-server/releases/latest/download/jenkins-mcp-server-macos-x64
+
+# macOS ARM64
+curl -L -o jenkins-mcp-server https://github.com/your-org/jenkins-mcp-server/releases/latest/download/jenkins-mcp-server-macos-arm64
+
+# Windows x64 (PowerShell)
+Invoke-WebRequest -Uri https://github.com/your-org/jenkins-mcp-server/releases/latest/download/jenkins-mcp-server-windows-x64.exe -OutFile jenkins-mcp-server.exe
+
+# Make executable (Linux/macOS)
+chmod +x jenkins-mcp-server
+
+# Run with environment variables
+JENKINS_URL=https://your-jenkins.com \
+JENKINS_USERNAME=your-username \
+JENKINS_API_TOKEN=your-api-token \
+./jenkins-mcp-server
+```
+
+#### Option 3: From Source (Development) 🛠️
+
+**For development and customization:**
+
+```bash
+# Prerequisites: Deno runtime v1.37+
+# Clone and setup
+git clone <your-repo-url>
+cd jenkins-mcp
+
+# Create environment configuration
+cp .env.example .env.local
+# Edit .env.local with your Jenkins details
+
+# Start the server
+./start-server.sh
+```
+
+### Build & Test
+
+```bash
+# Check TypeScript compilation
+deno task check
+
+# Build executable
+deno task build
+
+# Format and lint code
+deno task fmt && deno task lint
+```
+
+## 🤖 AI Integration
+
+### With Claude Desktop
+
+1. **Install Claude Desktop**: Download from [Anthropic](https://claude.ai/download)
+
+2. **Configure Claude Desktop**: Add to your configuration file:
+   - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - **Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
+
+   **Option A: Docker Deployment**
+   ```json
+   {
+     "mcpServers": {
+       "jenkins-mcp-server": {
+         "command": "docker",
+         "args": [
+           "run", "-i", "--rm",
+           "-e", "JENKINS_URL=https://your-jenkins.com",
+           "-e", "JENKINS_USERNAME=your-username",
+           "-e", "JENKINS_API_TOKEN=your-api-token",
+           "-e", "LOG_LEVEL=info",
+           "ghcr.io/your-org/jenkins-mcp-server:latest"
+         ]
+       }
+     }
+   }
+   ```
+
+   **Option B: Standalone Binary**
+   ```json
+   {
+     "mcpServers": {
+       "jenkins-mcp-server": {
+         "command": "/absolute/path/to/jenkins-mcp-server",
+         "env": {
+           "JENKINS_URL": "https://your-jenkins.com",
+           "JENKINS_USERNAME": "your-username",
+           "JENKINS_API_TOKEN": "your-api-token",
+           "JENKINS_TIMEOUT": "30000",
+           "JENKINS_RETRIES": "3",
+           "LOG_LEVEL": "info"
+         }
+       }
+     }
+   }
+   ```
+
+   **Option C: From Source (Development)**
+   ```json
+   {
+     "mcpServers": {
+       "jenkins-mcp-server": {
+         "command": "deno",
+         "args": [
+           "run",
+           "--allow-all",
+           "/absolute/path/to/jenkins-mcp/src/simple-server.ts"
+         ],
+         "env": {
+           "JENKINS_URL": "https://your-jenkins.com",
+           "JENKINS_USERNAME": "your-username",
+           "JENKINS_API_TOKEN": "your-api-token",
+           "JENKINS_TIMEOUT": "30000",
+           "JENKINS_RETRIES": "3",
+           "LOG_LEVEL": "info"
+         }
+       }
+     }
+   }
+   ```
+
+3. **Restart Claude Desktop** to load the new MCP server
+
+### With VS Code Extensions
+
+1. **Install MCP Extension**: Search for "MCP" or "Model Context Protocol" in VS Code extensions
+
+2. **Configure Workspace**: The `.vscode/mcp.json` file will be automatically detected by MCP-compatible extensions
+
+3. **Use AI Features**: Access Jenkins operations through AI chat interfaces
+
+### Example AI Interactions
+
+```text
+"List all my Jenkins jobs"
+→ Uses jenkins_list_jobs tool
+
+"Show me the details of the customer-api-demo job"
+→ Uses jenkins_get_job tool
+
+"Trigger a build for test-job-2"
+→ Uses jenkins_trigger_build tool
+
+"Get the console logs for build #42 of customer-api-demo"
+→ Uses jenkins_get_build_logs tool
+
+"Stop the running build for my-pipeline job"
+→ Uses jenkins_stop_build tool
+```
 
 ## Overview
 
-This MCP server enables AI applications to interact with Jenkins instances
-securely and efficiently. It provides:
+This MCP server enables AI applications to interact with Jenkins instances securely and efficiently. It provides:
 
 - **Job Management**: List, create, trigger, and monitor Jenkins jobs
 - **Build Operations**: Get build status, logs, and control execution
 - **Node Management**: Monitor Jenkins infrastructure health
 - **Queue Management**: View and manage build queues
 - **Security Integration**: Secure authentication with API tokens
-- **VS Code Integration**: Seamless AI assistant interaction
+- **AI Integration**: Seamless Claude Desktop and VS Code integration
 
 ## Features
 
@@ -58,9 +233,9 @@ securely and efficiently. It provides:
 - **Multi-branch Pipelines:** (Future enhancement)
 - **Organization Folders:** (Future enhancement)
 
-## Architecture
+## 🏗️ Architecture
 
-```
+```text
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   AI Assistant  │    │   VS Code IDE   │    │  Jenkins Server │
 │   (Claude, etc) │◄──►│    (MCP Host)   │    │   (Target API)  │
@@ -71,213 +246,165 @@ securely and efficiently. It provides:
                        │ Jenkins MCP     │               │
                        │ Server (Deno)   │───────────────┘
                        └─────────────────┘
+
+                       MCP Protocol (JSON-RPC)
+                       Authentication & Security
+                       Enterprise Jenkins Integration
 ```
 
-    │                        │                        │
-    ▼                        ▼                        ▼
+## 🛠️ Troubleshooting
 
-┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ │ MCP Protocol │ │
-Authentication │ │ Enterprise │ │ (JSON-RPC) │ │ & Security │ │ Jenkins │
-└─────────────────┘ └─────────────────┘ └─────────────────┘
+### Common Issues
 
-````
-## Quick Start
+#### Authentication Failed
+- **Verify credentials**: Check JENKINS_URL, JENKINS_USERNAME, and JENKINS_API_TOKEN
+- **Test connection**: Use curl to verify credentials:
+  ```bash
+  curl -u username:token https://your-jenkins.com/api/json
+  ```
+- **API Token**: Ensure you're using a valid Jenkins API token (not password)
 
-### Prerequisites
+#### Server Not Starting
+- **Check Deno**: Verify Deno installation with `deno --version`
+- **Environment variables**: Ensure all required variables are set in `.env.local`
+- **File paths**: Verify absolute paths in configurations
 
-- Deno runtime (v1.37+)
-- Jenkins server access
-- Valid Jenkins API token or credentials
+#### Connection Timeout
+- **Increase timeout**: Set `JENKINS_TIMEOUT=60000` (60 seconds)
+- **Network connectivity**: Test connection to Jenkins server
+- **Jenkins availability**: Verify Jenkins server is running and accessible
 
-### Installation
+#### MCP Client Connection Issues
+- **Claude Desktop**: Restart Claude Desktop after configuration changes
+- **VS Code**: Reload VS Code window after updating `.vscode/mcp.json`
+- **File paths**: Use absolute paths in configuration files
+
+### Debug Mode
+
+Enable detailed logging by setting:
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-org/jenkins-mcp-server.git
-cd jenkins-mcp-server
-
-# Run the server
-deno task dev
-````
-
-### Configuration
-
-Create a `.env` file:
-
-```env
-# Jenkins Configuration
-JENKINS_URL=https://jenkins.example.com
-JENKINS_USERNAME=your-username
-JENKINS_API_TOKEN=your-api-token
-
-# MCP Server Configuration
-MCP_SERVER_NAME=jenkins-enterprise
-MCP_SERVER_VERSION=1.0.0
-
-# Security Settings (optional)
-ALLOWED_DOMAINS=example.com,internal.company.com
-RATE_LIMIT_PER_MINUTE=60
+export LOG_LEVEL=debug
+./start-server.sh
 ```
 
-### Usage with Claude Desktop
+### Verification Commands
 
-Add to your `claude_desktop_config.json`:
+```bash
+# Test basic functionality
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | ./start-server.sh
 
-```json
-{
-  "mcpServers": {
-    "jenkins": {
-      "command": "deno",
-      "args": [
-        "run",
-        "--allow-net",
-        "--allow-env",
-        "--allow-read",
-        "/path/to/jenkins-mcp-server/src/index.ts"
-      ],
-      "env": {
-        "JENKINS_URL": "https://jenkins.example.com",
-        "JENKINS_API_TOKEN": "your-token"
-      }
-    }
-  }
-}
+# Test Jenkins connection
+echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"jenkins_get_version","arguments":{}}}' | ./start-server.sh
+
+# Test job listing
+echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"jenkins_list_jobs","arguments":{}}}' | ./start-server.sh
 ```
-
-## Security
-
-- **Authentication**: Supports Jenkins API tokens and username/password
-- **Authorization**: Role-based access control integration
-- **Rate Limiting**: Built-in request throttling
-- **Audit Logging**: Comprehensive action logging
-- **HTTPS Support**: Secure communication with Jenkins
 
 ## Development
 
 ### Project Structure
 
-```
-jenkins-mcp-server/
+```text
+jenkins-mcp/
 ├── src/
-│   ├── index.ts              # Main entry point
-│   ├── server.ts             # MCP server implementation
+│   ├── simple-server.ts      # Main MCP server (production)
 │   ├── jenkins/              # Jenkins integration
 │   │   ├── client.ts         # Jenkins API client
 │   │   ├── types.ts          # Type definitions
 │   │   └── auth.ts           # Authentication handling
-│   ├── tools/                # MCP tools implementation
-│   │   ├── job.ts            # Job management tools
-│   │   ├── build.ts          # Build management tools
-│   │   ├── pipeline.ts       # Pipeline tools
-│   │   └── monitoring.ts     # Monitoring tools
-│   ├── resources/            # MCP resources
-│   │   ├── configs.ts        # Configuration resources
-│   │   ├── logs.ts           # Log resources
-│   │   └── metrics.ts        # Metrics resources
-│   ├── prompts/              # MCP prompts
-│   │   ├── troubleshooting.ts
-│   │   ├── best-practices.ts
-│   │   └── security.ts
 │   └── utils/                # Utility functions
 │       ├── logger.ts         # Logging utilities
 │       ├── validation.ts     # Input validation
 │       └── config.ts         # Configuration management
-├── tests/                    # Test files
-├── docs/                     # Documentation
-├── .env.example              # Environment variables template
-├── deno.json                 # Deno configuration
-└── README.md                 # This file
+├── experimental/             # Experimental v1.1 features
+│   ├── index.ts             # Advanced MCP server
+│   ├── tools/               # Extended tool implementations
+│   ├── resources/           # MCP resources
+│   └── prompts/             # MCP prompts
+├── ansible/                 # Infrastructure automation
+├── .vscode/                 # VS Code configuration
+│   ├── mcp.json            # MCP client configuration
+│   └── tasks.json          # Build tasks
+├── docs/                    # Additional documentation
+├── .env.local              # Environment configuration
+├── start-server.sh         # Server startup script
+├── deno.json              # Deno configuration
+└── README.md              # This file
 ```
 
 ### Running Tests
 
 ```bash
-deno task test
-```
+# Type checking
+deno task check
 
-### Code Quality
+# Build executable
+deno task build
 
-```bash
 # Format code
 deno task fmt
 
 # Lint code
 deno task lint
-
-# Type checking
-deno task check
 ```
 
-## Enterprise Features
+## 🔐 Security & Configuration
 
-### Multi-Instance Support
+### Authentication Methods
 
-- Connect to multiple Jenkins instances
-- Instance-specific configurations
-- Cross-instance job orchestration
+- **API Tokens** (Recommended): Secure, user-specific tokens
+- **Username/Password**: Basic authentication support
+- **Rate Limiting**: Built-in request throttling
+- **Audit Logging**: Comprehensive action logging
 
-### Monitoring & Observability
+### Environment Configuration
 
-- Comprehensive logging
-- Performance metrics
-- Health checks
-- Error tracking
+```bash
+# Required
+JENKINS_URL=https://your-jenkins.com
+JENKINS_USERNAME=your-username
+JENKINS_API_TOKEN=your-api-token
 
-### Security & Compliance
+# Optional
+JENKINS_TIMEOUT=30000          # Request timeout (ms)
+JENKINS_RETRIES=3              # Request retry count
+LOG_LEVEL=info                 # Logging level (debug, info, warn, error)
+```
 
-- Audit trail for all actions
-- Role-based access control
-- Secure credential management
-- Compliance reporting
+### Security Best Practices
 
-## API Reference
+1. **Use API Tokens**: Always prefer API tokens over passwords
+2. **Environment Variables**: Store credentials in environment variables, not config files
+3. **Network Security**: Ensure secure communication with Jenkins (HTTPS)
+4. **Access Control**: Verify Jenkins user has appropriate permissions
+5. **Regular Rotation**: Rotate API tokens regularly
 
-### Tools
+## 📚 Documentation
 
-#### jenkins:job:trigger
+Additional documentation is available in the [`/docs`](docs/) directory:
 
-Trigger a Jenkins job with optional parameters.
+- **[API Reference](docs/api/API_REFERENCE.md)**: Complete tool documentation
+- **[System Architecture](docs/architecture/SYSTEM_ARCHITECTURE.md)**: Technical design
+- **[Deployment Guide](docs/guides/DEPLOYMENT.md)**: Production deployment
+- **[Contributing Guidelines](docs/CONTRIBUTING.md)**: Development workflow
 
-**Parameters:**
-
-- `jobName`: Name of the Jenkins job
-- `parameters`: Job parameters (optional)
-- `branch`: Branch to build (for pipeline jobs)
-
-#### jenkins:build:logs
-
-Retrieve build logs for a specific build.
-
-**Parameters:**
-
-- `jobName`: Name of the Jenkins job
-- `buildNumber`: Build number to retrieve logs for
-
-### Resources
-
-#### Jenkins Job Configuration
-
-Access Jenkins job XML configurations.
-
-#### Build History
-
-Historical build data and metrics.
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and add tests
+4. Ensure code quality: `deno task fmt && deno task lint && deno task check`
+5. Commit your changes: `git commit -m 'Add amazing feature'`
+6. Push to the branch: `git push origin feature/amazing-feature`
+7. Open a Pull Request
 
-## License
+## 📄 License
 
 MIT License - see LICENSE file for details.
 
-## Support
+## 🆘 Support
 
-- Documentation: [Wiki](https://github.com/your-org/jenkins-mcp-server/wiki)
-- Issues: [GitHub Issues](https://github.com/your-org/jenkins-mcp-server/issues)
-- Discussions:
-  [GitHub Discussions](https://github.com/your-org/jenkins-mcp-server/discussions)
+- **Issues**: [GitHub Issues](https://github.com/your-org/jenkins-mcp-server/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-org/jenkins-mcp-server/discussions)
+- **Documentation**: Additional guides in [`/docs`](docs/) directory

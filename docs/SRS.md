@@ -5,7 +5,23 @@
 **Document Version:** 1.0\
 **Date:** August 30, 2025\
 **Project:** Jenkins MCP Server\
-**Status:** ✅ MVP Complete - All Requirements Implemented
+**Status:** ✅ MVP Complete - Core Features Implemented
+
+---
+
+## Release Planning
+
+### Current Release (v1.0) - MVP Complete ✅
+
+**Focus**: Core Jenkins operations and management
+
+### Next Release (v1.1) - Planned
+
+**Focus**: Enhanced agent management and enterprise features
+
+### Experimental Features
+
+**Focus**: Advanced automation and infrastructure-as-code integration
 
 ---
 
@@ -63,10 +79,35 @@ automation servers, enabling natural language control of CI/CD pipelines.
 
 ### 2.4 Operating Environment
 
+#### 2.4.1 Deployment Options
+
+**Option 1: Docker Container (Recommended)**
+- **Container**: Docker image with embedded runtime
+- **Platform**: Multi-architecture (linux/amd64, linux/arm64)
+- **Dependencies**: Docker runtime only
+- **Distribution**: Container registry (Docker Hub, GitHub Container Registry)
+
+**Option 2: Standalone Executable**
+- **Runtime**: Self-contained binary (no Deno installation required)
+- **Platform**: Cross-platform native executables (Windows, macOS, Linux)
+- **Size**: ~70MB executable with embedded runtime and dependencies
+- **Distribution**: GitHub releases with platform-specific binaries
+
+**Option 3: Source Code (Development)**
 - **Runtime**: Deno 1.40+
 - **Platform**: Cross-platform (Windows, macOS, Linux)
-- **Network**: HTTP/HTTPS connectivity to Jenkins instances
-- **Integration**: VS Code with MCP extension support
+- **Dependencies**: Deno runtime required for development
+- **Use Case**: Development and customization
+
+#### 2.4.2 Network Requirements
+- **Connectivity**: HTTP/HTTPS access to Jenkins instances
+- **Ports**: Configurable (default: stdio for MCP communication)
+- **Security**: TLS/SSL support for Jenkins API communication
+
+#### 2.4.3 Integration Environment
+- **AI Clients**: Claude Desktop, VS Code with MCP extensions
+- **Configuration**: Environment variables or configuration files
+- **Logging**: Structured logging with configurable levels
 
 ---
 
@@ -158,55 +199,10 @@ automation servers, enabling natural language control of CI/CD pipelines.
 - **Output**: Cancellation confirmation
 - **Behavior**: Remove item from build queue
 
-### 3.5 Agent Management (F005)
+### 3.5 Security and Authorization (F006)
 
-**Priority**: High\
-**Description**: Administrative management of Jenkins agents/slaves
-
-#### 3.5.1 Restart Agent Service (F005.1)
-
-- **Input**: Node name, platform type (linux/windows), optional force flag
-- **Output**: Service restart status and confirmation
-- **Behavior**: Restart Jenkins agent service on specified node
-- **Requirements**: Admin privileges required
-- **Platform Support**:
-  - Linux: `systemctl restart jenkins-agent` or `service jenkins-agent restart`
-  - Windows: `Restart-Service "Jenkins Agent"` or `net stop/start "Jenkins Agent"`
-
-#### 3.5.2 Detect Agent Issues (F005.2)
-
-- **Input**: Node name or build information
-- **Output**: Agent health analysis and issue detection
-- **Behavior**: Analyze agent status, connection issues, and build failures
-- **Detection Criteria**:
-  - Agent offline/disconnected
-  - Build failures due to agent communication
-  - High resource usage or hanging processes
-  - Agent response timeout
-
-#### 3.5.3 Auto-Recovery Agent (F005.3)
-
-- **Input**: Node name, recovery strategy
-- **Output**: Recovery operation results
-- **Behavior**: Automated agent recovery workflow
-- **Recovery Steps**:
-  1. Detect agent issues
-  2. Attempt soft restart (disconnect/reconnect)
-  3. If failed, attempt service restart
-  4. If failed, alert administrators
-  5. Log all recovery attempts
-
-#### 3.5.4 Get Agent Diagnostics (F005.4)
-
-- **Input**: Node name
-- **Output**: Comprehensive agent diagnostic information
-- **Behavior**: Collect agent health metrics and system information
-- **Diagnostics Include**:
-  - System resources (CPU, memory, disk)
-  - Network connectivity
-  - Service status
-  - Recent error logs
-  - Build history and failure patterns
+**Priority**: Medium\
+**Description**: Enhanced security controls and audit capabilities
 
 ### 3.6 Security & Authorization (F006)
 
@@ -268,6 +264,32 @@ automation servers, enabling natural language control of CI/CD pipelines.
 - **Documentation**: Inline code documentation
 - **Modularity**: Clean separation of concerns
 
+### 4.6 Deployment and Portability (NF006)
+
+#### 4.6.1 Cross-Platform Support
+- **Native Executables**: Platform-specific binaries (Windows, macOS, Linux)
+- **No Runtime Dependencies**: Self-contained executables with embedded runtime
+- **Architecture Support**: x64 and ARM64 architectures
+- **File Size**: Optimized executable size (~70MB including all dependencies)
+
+#### 4.6.2 Containerization
+- **Docker Support**: Multi-architecture container images
+- **Container Size**: Optimized image size with minimal base image
+- **Registry Distribution**: Support for Docker Hub, GitHub Container Registry
+- **Security**: Non-root container execution, minimal attack surface
+
+#### 4.6.3 Distribution Methods
+- **GitHub Releases**: Automated release pipeline with platform-specific binaries
+- **Container Registry**: Tagged images with semantic versioning
+- **Package Managers**: Future support for Homebrew, Chocolatey, apt/yum
+- **Checksum Verification**: SHA256 checksums for all distributed artifacts
+
+#### 4.6.4 Installation Requirements
+- **Docker Deployment**: Docker runtime only
+- **Binary Deployment**: No additional runtime dependencies
+- **Development Setup**: Deno runtime for source code development
+- **Memory Requirements**: Minimum 512MB RAM, recommended 1GB+
+
 ---
 
 ## 5. External Interface Requirements
@@ -315,7 +337,6 @@ automation servers, enabling natural language control of CI/CD pipelines.
 - ✅ F002 Build Operations: Complete (jenkins_trigger_build, jenkins_get_build, jenkins_stop_build)
 - ✅ F003 Node Management: Complete (jenkins_list_nodes, jenkins_get_node_status)
 - ✅ F004 Queue Management: Complete (jenkins_get_queue, jenkins_cancel_queue_item)
-- 🚧 F005 Agent Management: In Development (jenkins_restart_agent, jenkins_agent_diagnostics, jenkins_auto_recovery)
 - 🚧 F006 Security & Authorization: In Development (admin role verification, audit logging)
 - ✅ Additional Tools: jenkins_get_version, jenkins_get_build_logs for system information
 
@@ -325,9 +346,21 @@ automation servers, enabling natural language control of CI/CD pipelines.
 
 ### 7.1 Technical Constraints
 
-- Deno runtime requirement
-- Jenkins API availability
-- Network connectivity requirements
+#### 7.1.1 Development Constraints
+- **Development Runtime**: Deno runtime required for source code development
+- **TypeScript**: Strong typing requirements for maintainability
+- **MCP Protocol**: JSON-RPC 2.0 compliance mandatory
+
+#### 7.1.2 Deployment Constraints
+- **Docker Deployment**: Requires Docker runtime environment
+- **Standalone Deployment**: No runtime dependencies (self-contained)
+- **Network Connectivity**: HTTP/HTTPS access to Jenkins instances required
+- **Memory Requirements**: Minimum 512MB RAM for stable operation
+
+#### 7.1.3 Integration Constraints
+- **Jenkins API**: Requires Jenkins REST API v2.0+ compatibility
+- **MCP Clients**: Compatible AI assistants (Claude Desktop, VS Code extensions)
+- **Authentication**: Valid Jenkins credentials (API tokens preferred)
 
 ### 7.2 Business Constraints
 
@@ -343,7 +376,119 @@ automation servers, enabling natural language control of CI/CD pipelines.
 
 ---
 
-## 8. Approval
+## 8. Experimental Features (Future Release v1.1)
+
+### E001 Advanced Agent Management (F005)
+
+**Status**: Experimental - Moved from Core Features  
+**Target Release**: v1.1  
+**Complexity**: High - Requires Infrastructure-as-Code Integration
+
+#### E001.1 Declarative Agent Restart (F005.1)
+
+- **Approach**: Ansible playbook-based declarative infrastructure management
+- **Features**:
+  - Template-driven restart scenarios (graceful, emergency, maintenance)
+  - Cross-platform support (Linux systemctl, Windows PowerShell)
+  - Ansible inventory integration for agent discovery
+  - Rollback capabilities for failed operations
+- **Templates Available**:
+  - `graceful_restart`: Standard service restart with health checks
+  - `emergency_restart`: Force restart with immediate recovery
+  - `maintenance_restart`: Scheduled restart with notification
+  - `cluster_restart`: Rolling restart for agent clusters
+  - `diagnostic_restart`: Restart with comprehensive logging
+
+#### E001.2 Intelligent Agent Diagnostics (F005.2)
+
+- **Approach**: Comprehensive agent health monitoring and analysis
+- **Features**:
+  - Real-time system resource monitoring (CPU, memory, disk)
+  - Network connectivity analysis and troubleshooting
+  - Jenkins service status and configuration validation
+  - Historical performance trend analysis
+  - Predictive failure detection based on system metrics
+
+#### E001.3 Automated Agent Recovery (F005.3)
+
+- **Approach**: Multi-tier recovery strategy with escalation
+- **Recovery Workflow**:
+  1. **Soft Recovery**: Agent disconnect/reconnect cycle
+  2. **Service Recovery**: Ansible-driven service restart
+  3. **System Recovery**: Node reboot via infrastructure automation
+  4. **Escalation**: Administrator notification and manual intervention
+- **Features**:
+  - Configurable recovery thresholds and timeouts
+  - Integration with monitoring systems for alerts
+  - Recovery operation audit trail and reporting
+
+#### E001.4 Infrastructure-as-Code Integration (F005.4)
+
+- **Approach**: Full Ansible integration for declarative agent management
+- **Components**:
+  - Dynamic inventory generation from Jenkins API
+  - Parameterized playbooks for different scenarios
+  - Template engine for custom restart workflows
+  - Integration with existing DevOps toolchains
+- **Security Model**:
+  - User-controlled privilege escalation (no automatic admin checks)
+  - Role-based access control integration
+  - Audit logging for all infrastructure operations
+  - Dry-run capabilities for operation validation
+
+#### Implementation Challenges
+
+**Why Moved to Experimental:**
+
+1. **Privilege Management Complexity**
+   - Enterprise environments require sophisticated privilege handling
+   - User vs. system admin role separation is critical
+   - Automatic privilege checking creates security concerns
+
+2. **Infrastructure Dependencies**
+   - Requires Ansible installation and configuration
+   - Complex inventory management for large Jenkins environments
+   - Integration with existing infrastructure automation tools
+
+3. **Cross-Platform Considerations**
+   - Different restart mechanisms across Linux/Windows
+   - Platform-specific error handling and recovery strategies
+   - Service management API variations
+
+4. **Enterprise Integration Requirements**
+   - LDAP/AD integration for role-based access
+   - Integration with ITSM systems for change management
+   - Compliance requirements for infrastructure changes
+
+#### Development Roadmap for v1.1
+
+##### Phase 1: Foundation (Weeks 1-2)
+
+- Complete TypeScript compilation fixes
+- Stabilize Ansible integration framework
+- Implement comprehensive test suite
+
+##### Phase 2: Security Model (Weeks 3-4)
+
+- Design enterprise privilege management system
+- Implement role-based access controls
+- Add audit logging and compliance features
+
+##### Phase 3: Platform Integration (Weeks 5-6)
+
+- Enhance cross-platform support
+- Integrate with enterprise monitoring systems
+- Add ITSM workflow integration
+
+##### Phase 4: Production Readiness (Weeks 7-8)
+
+- Performance optimization and scalability testing
+- Documentation and deployment guides
+- Enterprise certification and security review
+
+---
+
+## 9. Approval
 
 **Document Prepared By:** Development Team\
 **Review Date:** August 30, 2025\

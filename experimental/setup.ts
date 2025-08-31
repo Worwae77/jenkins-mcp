@@ -1,12 +1,16 @@
 /**
- * Jenkins MCP Server setup with tools, resources, and prompts
+ * Jenkins MCP Server setup with tools, resources, and prompts - EXPERIMENTAL VERSION
+ * 
+ * TODO: This file contains experimental setup architecture that includes
+ * F005 Agent Management features not included in v1.0. The production v1.0 
+ * build uses simple-server.ts instead of this setup-based approach.
  */
 
-import { z } from "zod";
 import { Server as McpServer } from "npm:@modelcontextprotocol/sdk@0.4.0/server/index.js";
+import { z } from "zod";
+import { JenkinsClient } from "./jenkins/client.ts";
 import { logger } from "./utils/logger.ts";
 import { validateBuildNumber, validateJobName } from "./utils/validation.ts";
-import { JenkinsClient } from "./jenkins/client.ts";
 
 /**
  * Setup Jenkins tools in McpServer

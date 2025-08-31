@@ -16,6 +16,8 @@ jenkins-mcp-server
 
 # IDE files
 .vscode/settings.json
+.vscode/mcp.json.local
+.vscode/*.backup
 .idea/
 *.swp
 *.swo

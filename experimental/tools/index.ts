@@ -1,5 +1,9 @@
 /**
- * Jenkins MCP Tools
+ * Jenkins MCP Tools - EXPERIMENTAL VERSION (NOT FOR v1.0)
+ * 
+ * TODO: This file contains experimental F005 Agent Management features
+ * that are NOT included in the v1.0 release. These features are marked
+ * for future development in v1.1.
  *
  * This module implements the tools interface for the Jenkins MCP server.
  * Tools represent actions that can be performed against Jenkins instances.
@@ -14,13 +18,13 @@ import type {
 
 import { JenkinsClient } from "../jenkins/client.ts";
 import type {
+    AgentDiagnosticsRequest,
+    AgentRecoveryRequest,
+    AgentRestartRequest,
     BuildLogsRequest,
     JobStatusRequest,
     JobTriggerRequest,
     NodeStatusRequest,
-    AgentRestartRequest,
-    AgentDiagnosticsRequest,
-    AgentRecoveryRequest,
 } from "../jenkins/types.ts";
 import { logger } from "../utils/logger.ts";
 import {

@@ -1,21 +1,25 @@
 #!/usr/bin/env deno run --allow-net --allow-env --allow-read --allow-write
 
 /**
- * Jenkins MCP Server - Main Entry Point
+ * Jenkins MCP Server - Main Entry Point (EXPERIMENTAL VERSION)
+ *
+ * TODO: This is the experimental entry point that uses setup.ts architecture.
+ * The v1.0 production build uses simple-server.ts instead. This file contains
+ * F005 experimental features not included in v1.0 release.
  *
  * This is the main entry point for the Jenkins Model Context Protocol server.
  * It initializes the server and connects to the appropriate transport.
  */
 
-import { Server } from "npm:@modelcontextprotocol/sdk@0.4.0/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { Server } from "npm:@modelcontextprotocol/sdk@0.4.0/server/index.js";
+import {
+    setupJenkinsPrompts,
+    setupJenkinsResources,
+    setupJenkinsTools,
+} from "./setup.ts";
 import { config } from "./utils/config.ts";
 import { logger } from "./utils/logger.ts";
-import {
-  setupJenkinsPrompts,
-  setupJenkinsResources,
-  setupJenkinsTools,
-} from "./setup.ts";
 
 /**
  * Main server instance

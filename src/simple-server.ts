@@ -255,9 +255,13 @@ const TOOLS: Tool[] = [
       additionalProperties: false,
     },
   },
+  // TODO: F005 EXPERIMENTAL FEATURES - DISABLED FOR v1.0 RELEASE
+  // These agent management tools have been moved to experimental status for v1.1
+  // Uncomment and complete implementation in next release
+  /*
   {
     name: "jenkins_restart_agent",
-    description: "Restart a Jenkins agent service on Linux or Windows (requires admin role)",
+    description: "Restart a Jenkins agent service with support for Ansible playbooks and user-specified privilege handling",
     inputSchema: {
       type: "object",
       properties: {
@@ -267,18 +271,64 @@ const TOOLS: Tool[] = [
         },
         platform: {
           type: "string",
-          enum: ["linux", "windows"],
-          description: "Platform of the agent (linux or windows)",
+          enum: ["linux", "windows", "auto"],
+          description: "Platform of the agent (linux, windows, or auto-detect)",
         },
         forceRestart: {
           type: "boolean",
           description: "Force restart even if agent appears healthy",
         },
+        useAnsible: {
+          type: "boolean", 
+          description: "Use Ansible playbooks for declarative restart (recommended for production)",
+        },
+        ansiblePlaybook: {
+          type: "string",
+          description: "Custom Ansible playbook path (relative to ansible/playbooks/)",
+        },
+        ansibleInventory: {
+          type: "string", 
+          description: "Custom Ansible inventory file path (defaults to ansible/inventory.ini)",
+        },
+        ansibleVariables: {
+          type: "object",
+          description: "Additional variables to pass to Ansible playbook",
+          additionalProperties: true,
+        },
+        templateName: {
+          type: "string",
+          enum: ["graceful_restart", "emergency_restart", "build_env_restart", "production_restart", "memory_recovery_restart"],
+          description: "Predefined restart template for common scenarios",
+        },
+        templateVariables: {
+          type: "object", 
+          description: "Variables to override in the selected template",
+          additionalProperties: true,
+        },
+        bypassPrivilegeCheck: {
+          type: "boolean",
+          description: "Bypass automatic privilege checking - let Jenkins handle authorization",
+        },
+        userRole: {
+          type: "string",
+          enum: ["admin", "user", "operator"],
+          description: "Specify user role for audit logging and privilege context",
+        },
+        requireConfirmation: {
+          type: "boolean",
+          description: "Require explicit confirmation before executing restart",
+        },
+        dryRun: {
+          type: "boolean",
+          description: "Simulate the restart operation without actually executing it",
+        },
       },
-      required: ["nodeName", "platform"],
+      required: ["nodeName"],
       additionalProperties: false,
     },
   },
+  */
+  /*
   {
     name: "jenkins_agent_diagnostics",
     description: "Run diagnostics on a Jenkins agent to detect issues (requires admin role)",
@@ -302,6 +352,8 @@ const TOOLS: Tool[] = [
       additionalProperties: false,
     },
   },
+  */
+  /*
   {
     name: "jenkins_auto_recovery",
     description: "Attempt automatic recovery of a problematic Jenkins agent (requires admin role)",
@@ -328,6 +380,7 @@ const TOOLS: Tool[] = [
       additionalProperties: false,
     },
   },
+  */
 ];
 
 // Define resources
@@ -420,7 +473,7 @@ async function handleTool(
       validateJobName(jobName);
 
       await jenkinsClient.initialize();
-      const result = await jenkinsClient.triggerJob({
+      const result = await jenkinsClient.triggerBuild({
         jobName,
         parameters,
       });
@@ -613,7 +666,7 @@ ${buildSteps}
       const { nodeName } = args as { nodeName?: string };
 
       await jenkinsClient.initialize();
-      const nodeStatus = await jenkinsClient.getNodeStatus({ nodeName: nodeName || "" });
+      const nodeStatus = await jenkinsClient.getNodeStatus(nodeName || undefined);
 
       return {
         content: [
@@ -627,7 +680,7 @@ ${buildSteps}
 
     case "jenkins_get_queue": {
       await jenkinsClient.initialize();
-      const queue = await jenkinsClient.getQueue();
+      const queue = await jenkinsClient.getBuildQueue();
 
       return {
         content: [
@@ -655,19 +708,73 @@ ${buildSteps}
       };
     }
 
+    // TODO: F005 EXPERIMENTAL CASE HANDLERS - DISABLED FOR v1.0 RELEASE
+    // These case handlers are for experimental agent management features
+    // Uncomment and complete implementation in next release (v1.1)
+    /*
     case "jenkins_restart_agent": {
-      const { nodeName, platform, forceRestart } = args as {
+      const { 
+        nodeName, 
+        platform = "auto", 
+        forceRestart, 
+        useAnsible, 
+        ansiblePlaybook, 
+        ansibleInventory, 
+        ansibleVariables, 
+        templateName, 
+        templateVariables,
+        bypassPrivilegeCheck = true,
+        userRole,
+        requireConfirmation,
+        dryRun = false
+      } = args as {
         nodeName: string;
-        platform: "linux" | "windows";
+        platform?: "linux" | "windows" | "auto";
         forceRestart?: boolean;
+        useAnsible?: boolean;
+        ansiblePlaybook?: string;
+        ansibleInventory?: string;
+        ansibleVariables?: Record<string, any>;
       };
 
       await jenkinsClient.initialize();
-      const result = await jenkinsClient.restartAgent({
+      
+      // Build request object  
+      const restartRequest: any = {
         nodeName,
         platform,
         force: forceRestart || false,
-      });
+        bypassPrivilegeCheck,
+        userRole,
+        requireConfirmation,
+        dryRun
+      };
+
+      // Add Ansible support if requested
+      if (useAnsible || ansiblePlaybook || templateName) {
+        restartRequest.useAnsible = true;
+        
+        if (ansiblePlaybook) {
+          restartRequest.ansiblePlaybook = ansiblePlaybook;
+        }
+        
+        if (ansibleInventory) {
+          restartRequest.ansibleInventory = ansibleInventory;
+        }
+        
+        if (ansibleVariables) {
+          restartRequest.ansibleVariables = ansibleVariables;
+        }
+        
+        if (templateName) {
+          restartRequest.templateConfig = {
+            templateName,
+            variables: templateVariables || {}
+          };
+        }
+      }
+
+      const result = await jenkinsClient.restartAgent(restartRequest);
 
       return {
         content: [
@@ -728,6 +835,7 @@ ${buildSteps}
         isError: !result.success,
       };
     }
+    */
 
     default:
       throw new Error(`Unknown tool: ${name}`);
