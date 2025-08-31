@@ -68,7 +68,7 @@ export class JenkinsAuth {
     if (this.cookies.size > 0) {
       const cookieString = Array.from(this.cookies.entries())
         .map(([name, value]) => `${name}=${value}`)
-        .join('; ');
+        .join("; ");
       headers.Cookie = cookieString;
     }
 
@@ -79,14 +79,16 @@ export class JenkinsAuth {
    * Process response cookies and store them
    */
   private processCookies(response: Response): void {
-    const setCookieHeaders = response.headers.get('set-cookie');
+    const setCookieHeaders = response.headers.get("set-cookie");
     if (setCookieHeaders) {
       // Parse cookies from set-cookie header
-      const cookies = setCookieHeaders.split(',').map(cookie => cookie.trim());
-      
+      const cookies = setCookieHeaders.split(",").map((cookie) =>
+        cookie.trim()
+      );
+
       for (const cookie of cookies) {
-        const [nameValue] = cookie.split(';');
-        const [name, value] = nameValue.split('=');
+        const [nameValue] = cookie.split(";");
+        const [name, value] = nameValue.split("=");
         if (name && value) {
           this.cookies.set(name.trim(), value.trim());
           logger.debug(`Stored cookie: ${name.trim()}`);
@@ -125,7 +127,7 @@ export class JenkinsAuth {
 
         logger.debug("CSRF crumb fetched successfully", {
           crumbRequestField: this.crumbRequestField,
-          cookieCount: this.cookies.size
+          cookieCount: this.cookies.size,
         });
       } else {
         logger.warn(
@@ -237,16 +239,19 @@ export class JenkinsAuth {
   getCookieJarInfo(): { count: number; cookies: string[] } {
     return {
       count: this.cookies.size,
-      cookies: Array.from(this.cookies.keys())
+      cookies: Array.from(this.cookies.keys()),
     };
   }
 
   /**
    * Make authenticated request with cookie and crumb handling
    */
-  async makeAuthenticatedRequest(url: string, options: RequestInit = {}): Promise<Response> {
+  async makeAuthenticatedRequest(
+    url: string,
+    options: RequestInit = {},
+  ): Promise<Response> {
     const authHeaders = this.getAuthHeaders();
-    
+
     const requestOptions: RequestInit = {
       ...options,
       headers: {
@@ -257,10 +262,10 @@ export class JenkinsAuth {
     };
 
     const response = await fetch(url, requestOptions);
-    
+
     // Always process cookies from response to maintain session
     this.processCookies(response);
-    
+
     return response;
   }
 }
