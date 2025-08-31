@@ -13,7 +13,7 @@
     "build:windows": "deno compile --allow-net --allow-env --allow-read --allow-write --target x86_64-pc-windows-msvc --output jenkins-mcp-server-windows-x64.exe src/simple-server.ts",
     "build:all": "deno task build:linux && deno task build:macos && deno task build:macos-arm && deno task build:windows",
     "docker:build": "docker build -t jenkins-mcp-server:latest .",
-    "docker:test": "./test-docker.sh",
+    "docker:test": "make docker-test",
     "test": "deno test --allow-net --allow-env --allow-read --allow-write",
     "check": "deno check src/**/*.ts",
     "fmt": "deno fmt src/**/*.ts",

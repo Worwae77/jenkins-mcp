@@ -56,11 +56,13 @@ install: ## Install dependencies and setup environment
 ## Development
 dev: check-env ## Start development server with auto-reload
 	@echo "$(GREEN)Starting development server...$(NC)"
-	@deno run --allow-net --allow-env --allow-read --allow-write src/simple-server.ts
+	@export $$(cat $(ENV_FILE) | grep -v '^#' | grep -v '^$$' | xargs); \
+	deno run --allow-net --allow-env --allow-read --allow-write src/simple-server.ts
 
 start: check-env ## Start the MCP server
 	@echo "$(GREEN)Starting Jenkins MCP Server...$(NC)"
-	@if [ -f "./$(BINARY_NAME)" ]; then \
+	@export $$(cat $(ENV_FILE) | grep -v '^#' | grep -v '^$$' | xargs); \
+	if [ -f "./$(BINARY_NAME)" ]; then \
 		exec ./$(BINARY_NAME); \
 	else \
 		echo "$(YELLOW)Binary not found, running from source...$(NC)"; \
@@ -247,13 +249,36 @@ release: quality build-all docker-build ## Prepare release (quality checks + all
 	@echo "$(BLUE)Docker image:$(NC) $(DOCKER_IMAGE):$(DOCKER_TAG)"
 
 ## Utility targets
-check-env: ## Check environment configuration
+check-env: ## Check and load environment configuration
 	@if [ ! -f "$(ENV_FILE)" ]; then \
 		echo "$(RED)Error: $(ENV_FILE) not found$(NC)"; \
 		echo "$(YELLOW)Run 'make install' to create it from $(ENV_EXAMPLE)$(NC)"; \
 		exit 1; \
 	fi
-	@echo "$(GREEN)Environment configuration found$(NC)"
+	@echo "$(GREEN)Loading environment configuration...$(NC)"
+	@if [ -f "$(ENV_FILE)" ]; then \
+		export $$(cat $(ENV_FILE) | grep -v '^#' | grep -v '^$$' | xargs); \
+		if [ -z "$$JENKINS_URL" ]; then \
+			echo "$(RED)Error: JENKINS_URL environment variable is required$(NC)"; \
+			exit 1; \
+		fi; \
+		if [ -z "$$JENKINS_USERNAME" ]; then \
+			echo "$(RED)Error: JENKINS_USERNAME environment variable is required$(NC)"; \
+			exit 1; \
+		fi; \
+		if [ -z "$$JENKINS_API_TOKEN" ] && [ -z "$$JENKINS_API_PASSWORD" ]; then \
+			echo "$(RED)Error: Either JENKINS_API_TOKEN or JENKINS_API_PASSWORD must be provided$(NC)"; \
+			exit 1; \
+		fi; \
+		echo "$(GREEN)✅ Environment validation passed$(NC)"; \
+		echo "$(BLUE)Jenkins URL:$(NC) $$JENKINS_URL"; \
+		echo "$(BLUE)Jenkins User:$(NC) $$JENKINS_USERNAME"; \
+		if [ -n "$$JENKINS_API_TOKEN" ]; then \
+			echo "$(BLUE)Authentication:$(NC) API Token"; \
+		else \
+			echo "$(BLUE)Authentication:$(NC) Password"; \
+		fi; \
+	fi
 
 check-docker-env: ## Check Docker environment variables
 	@if [ -z "$$JENKINS_URL" ] || [ -z "$$JENKINS_USERNAME" ] || [ -z "$$JENKINS_API_TOKEN" ]; then \

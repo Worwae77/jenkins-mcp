@@ -7,36 +7,62 @@ A Model Context Protocol (MCP) server for Jenkins automation and management in e
 
 ## 🚀 Quick Start
 
-### 1. Clone and Setup
+Choose your preferred installation method:
+
+### ⚡ Fastest: Docker (No setup required)
+
 ```bash
+# 1. Pull and run (replace with your Jenkins details)
+docker run -e JENKINS_URL=https://your-jenkins.com \
+           -e JENKINS_USERNAME=your-username \
+           -e JENKINS_API_TOKEN=your-api-token \
+           -i ghcr.io/worwae77/jenkins-mcp:latest
+
+# Note: If you get "denied" error, visit https://github.com/Worwae77/jenkins-mcp/packages 
+# to make the package public, or authenticate with GitHub
+```
+
+### 🛠️ Development: From Source
+
+```bash
+# 1. Clone and setup
 git clone https://github.com/Worwae77/jenkins-mcp.git
 cd jenkins-mcp
 make install        # Setup dependencies and environment
-```
 
-### 2. Configure Environment
-```bash
+# 2. Configure environment
+cp .env.example .env.local
 # Edit .env.local with your Jenkins details
-JENKINS_URL=https://your-jenkins.com
-JENKINS_USERNAME=your-username  
-JENKINS_API_TOKEN=your-api-token
-```
 
-### 3. Start the Server
-```bash
+# 3. Start the server
 make start          # Start the MCP server
 ```
 
-### 4. Integrate with AI Tools
+### 📦 Production: Standalone Binary
+
+```bash
+# 1. Download (example for Linux x64)
+curl -L -o jenkins-mcp-server https://github.com/Worwae77/jenkins-mcp/releases/latest/download/jenkins-mcp-server-linux-x64
+chmod +x jenkins-mcp-server
+
+# 2. Run with environment variables
+JENKINS_URL=https://your-jenkins.com \
+JENKINS_USERNAME=your-username \
+JENKINS_API_TOKEN=your-api-token \
+./jenkins-mcp-server
+```
+
+### 🤖 AI Integration
+
 - **Claude Desktop**: Copy configuration from `.vscode/claude_desktop_config.json`
 - **VS Code**: Open workspace - MCP configuration auto-detected
-- **Other Tools**: Use Docker image or standalone binary
+- **Other Tools**: Use any installation method above
 
 ---
 
-## 📦 Alternative Installation Options
+## 📖 Detailed Installation Options
 
-#### Option 1: Docker (Recommended) 🐳
+### Option 1: Docker (Recommended) 🐳
 
 **No Deno installation required - just Docker!**
 
@@ -44,35 +70,47 @@ make start          # Start the MCP server
 # Pull the image
 docker pull ghcr.io/worwae77/jenkins-mcp:latest
 
+# Note: If you get "denied" error, the package might be private
+# Visit https://github.com/Worwae77/jenkins-mcp/packages to make it public
+# Or authenticate: echo $GITHUB_TOKEN | docker login ghcr.io -u username --password-stdin
+
 # Run with environment variables
 docker run -e JENKINS_URL=https://your-jenkins.com \
            -e JENKINS_USERNAME=your-username \
            -e JENKINS_API_TOKEN=your-api-token \
            -i ghcr.io/worwae77/jenkins-mcp:latest
 
-# Or use docker-compose
-wget https://raw.githubusercontent.com/your-org/jenkins-mcp-server/main/docker-compose.yml
-# Edit environment variables in docker-compose.yml
+# Or use docker-compose (easier environment management)
+wget https://raw.githubusercontent.com/Worwae77/jenkins-mcp/main/docker-compose.yml
+# Create .env file with your Jenkins details
+cat > .env << EOF
+JENKINS_URL=https://your-jenkins.com
+JENKINS_USERNAME=your-username
+JENKINS_API_TOKEN=your-api-token
+JENKINS_TIMEOUT=30000
+JENKINS_RETRIES=3
+LOG_LEVEL=info
+EOF
 docker-compose up
 ```
 
-#### Option 2: Standalone Binary 📦
+### Option 2: Standalone Binary 📦
 
 **No runtime dependencies - self-contained executable!**
 
 ```bash
 # Download for your platform from GitHub Releases
 # Linux x64
-curl -L -o jenkins-mcp-server https://github.com/your-org/jenkins-mcp-server/releases/latest/download/jenkins-mcp-server-linux-x64
+curl -L -o jenkins-mcp-server https://github.com/Worwae77/jenkins-mcp/releases/latest/download/jenkins-mcp-server-linux-x64
 
 # macOS x64
-curl -L -o jenkins-mcp-server https://github.com/your-org/jenkins-mcp-server/releases/latest/download/jenkins-mcp-server-macos-x64
+curl -L -o jenkins-mcp-server https://github.com/Worwae77/jenkins-mcp/releases/latest/download/jenkins-mcp-server-macos-x64
 
 # macOS ARM64
-curl -L -o jenkins-mcp-server https://github.com/your-org/jenkins-mcp-server/releases/latest/download/jenkins-mcp-server-macos-arm64
+curl -L -o jenkins-mcp-server https://github.com/Worwae77/jenkins-mcp/releases/latest/download/jenkins-mcp-server-macos-arm64
 
 # Windows x64 (PowerShell)
-Invoke-WebRequest -Uri https://github.com/your-org/jenkins-mcp-server/releases/latest/download/jenkins-mcp-server-windows-x64.exe -OutFile jenkins-mcp-server.exe
+Invoke-WebRequest -Uri https://github.com/Worwae77/jenkins-mcp/releases/latest/download/jenkins-mcp-server-windows-x64.exe -OutFile jenkins-mcp-server.exe
 
 # Make executable (Linux/macOS)
 chmod +x jenkins-mcp-server
@@ -84,7 +122,7 @@ JENKINS_API_TOKEN=your-api-token \
 ./jenkins-mcp-server
 ```
 
-#### Option 3: From Source (Development) 🛠️
+### Option 3: Development Setup 🛠️
 
 **For development and customization:**
 
@@ -121,7 +159,7 @@ make quality       # Run all quality checks
 
 # Building
 make build         # Build for current platform
-make build-all     # Build for all platforms
+make build-all     # Build for all platforms  
 make release       # Quality checks + all builds
 
 # Docker operations
@@ -130,11 +168,11 @@ make docker-test   # Test Docker deployment
 make docker-run    # Run Docker container
 
 # Testing
-make test          # Run unit tests
+make test          # Run tests
 make deploy-test   # Test all deployment methods
 ```
 
-## 🤖 AI Integration
+## 🤖 AI Tool Integration
 
 ### With Claude Desktop
 
@@ -145,6 +183,7 @@ make deploy-test   # Test all deployment methods
    - **Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
 
    **Option A: Docker Deployment**
+
    ```json
    {
      "mcpServers": {
@@ -164,6 +203,7 @@ make deploy-test   # Test all deployment methods
    ```
 
    **Option B: Standalone Binary**
+
    ```json
    {
      "mcpServers": {
@@ -183,6 +223,7 @@ make deploy-test   # Test all deployment methods
    ```
 
    **Option C: From Source (Development)**
+
    ```json
    {
      "mcpServers": {
@@ -224,7 +265,8 @@ make deploy-test   # Test all deployment methods
    - **Debug configuration**: Press `F5` to start debugging with breakpoints
    - **Environment auto-loading**: Credentials from `.env.local` automatically loaded
 
-4. **Quick VS Code Setup**: 
+4. **Quick VS Code Setup**:
+
    ```bash
    # Copy pre-configured settings (if needed)
    cp .vscode/claude_desktop_config.json ~/Library/Application\ Support/Claude/claude_desktop_config.json
@@ -237,21 +279,138 @@ make deploy-test   # Test all deployment methods
 
 ### Example AI Interactions
 
+#### 🔍 **Job Discovery & Management**
+
 ```text
-"List all my Jenkins jobs"
-→ Uses jenkins_list_jobs tool
+"What Jenkins jobs do I have access to?"
+→ Uses jenkins_list_jobs tool to show all available jobs
 
-"Show me the details of the customer-api-demo job"
-→ Uses jenkins_get_job tool
+"Show me all the details about the customer-api-build job"
+→ Uses jenkins_get_job tool to get configuration, recent builds, parameters
 
-"Trigger a build for test-job-2"
-→ Uses jenkins_trigger_build tool
+"Can you help me create a new job called 'test-automation' with a basic pipeline?"
+→ Uses jenkins_create_job tool with pipeline configuration
 
-"Get the console logs for build #42 of customer-api-demo"
-→ Uses jenkins_get_build_logs tool
+"What are the build parameters for the deployment-prod job?"
+→ Uses jenkins_get_job tool to show configurable parameters
+```
 
-"Stop the running build for my-pipeline job"
-→ Uses jenkins_stop_build tool
+#### 🚀 **Build Operations & Monitoring**
+
+```text
+"Start a build for the customer-api-build job"
+→ Uses jenkins_trigger_job tool to start build immediately
+
+"Trigger the deployment-staging job with environment=staging and version=2.1.0"
+→ Uses jenkins_trigger_job tool with specific parameters
+
+"What's the status of build #156 for the customer-api-build job?"
+→ Uses jenkins_get_build tool to check build status, duration, result
+
+"Show me the console logs for the latest build of test-suite-integration"
+→ Uses jenkins_get_build_logs tool to retrieve and display logs
+
+"Get the console output for build #42 of the customer-api-demo job"
+→ Uses jenkins_get_build_logs tool with specific build number
+```
+
+#### ⚠️ **Build Control & Troubleshooting**
+
+```text
+"Stop the currently running build for my-pipeline job"
+→ Uses jenkins_stop_build tool to cancel active build
+
+"The deployment-prod job has been running for 2 hours, can you stop it?"
+→ Uses jenkins_stop_build tool to halt long-running build
+
+"Why did build #89 of the test-suite fail? Show me the logs"
+→ Uses jenkins_get_build + jenkins_get_build_logs to investigate failure
+
+"Cancel all builds in the queue for the load-testing job"
+→ Uses jenkins_get_queue + jenkins_cancel_queue_item tools
+```
+
+#### 🖥️ **Infrastructure & Node Management**
+
+```text
+"What Jenkins nodes are available and what's their status?"
+→ Uses jenkins_list_nodes tool to show all agents and their health
+
+"Is the linux-build-agent-01 node online and ready?"
+→ Uses jenkins_get_node_status tool to check specific agent
+
+"Show me the details of the docker-agent-pool node"
+→ Uses jenkins_get_node_status tool for detailed node information
+
+"Which builds are currently running on the windows-agent-02?"
+→ Uses jenkins_get_node_status tool to see active builds on specific node
+```
+
+#### 📋 **Queue Management & Planning**
+
+```text
+"What builds are waiting in the queue right now?"
+→ Uses jenkins_get_queue tool to show pending builds
+
+"How many jobs are queued for the main build agents?"
+→ Uses jenkins_get_queue tool to analyze queue depth
+
+"Cancel the queued build #1234 for test-performance job"
+→ Uses jenkins_cancel_queue_item tool to remove specific queue item
+
+"Why is my build stuck in the queue for so long?"
+→ Uses jenkins_get_queue + jenkins_list_nodes to diagnose capacity issues
+```
+
+#### 🎯 **Advanced Workflow Examples**
+
+```text
+"Deploy version 3.2.1 to staging environment with database migration enabled"
+→ Uses jenkins_trigger_job with parameters: version=3.2.1, environment=staging, migrate_db=true
+
+"Show me a summary of all failed builds from the last 24 hours"
+→ Uses jenkins_list_jobs + jenkins_get_job to analyze recent build failures
+
+"I need to restart all builds that failed due to network timeout"
+→ Uses jenkins_get_build to identify failed builds + jenkins_trigger_job to restart them
+
+"Check if the nightly-backup job ran successfully and show me the results"
+→ Uses jenkins_get_job + jenkins_get_build + jenkins_get_build_logs for comprehensive check
+
+"What's the overall health of my Jenkins environment?"
+→ Uses jenkins_get_version + jenkins_list_nodes + jenkins_get_queue for system overview
+```
+
+#### 🔧 **DevOps Scenarios**
+
+```text
+"The production deployment failed at step 3, can you show me what went wrong?"
+→ Uses jenkins_get_build_logs to analyze specific failure point
+
+"Trigger a hotfix deployment with branch=hotfix/critical-bug and skip_tests=true"
+→ Uses jenkins_trigger_job with emergency deployment parameters
+
+"Check if all microservices builds completed successfully before I trigger integration tests"
+→ Uses jenkins_get_build across multiple jobs to verify readiness
+
+"Our load testing is taking too long, show me what's running and stop non-critical builds"
+→ Uses jenkins_get_queue + jenkins_list_nodes + jenkins_stop_build for resource management
+```
+
+#### 📊 **Monitoring & Reporting**
+
+```text
+"Give me a report on build success rates for all jobs this week"
+→ Uses jenkins_list_jobs + jenkins_get_job to analyze build statistics
+
+"Which agent nodes have the highest utilization right now?"
+→ Uses jenkins_list_nodes + jenkins_get_node_status for capacity analysis
+
+"Show me all jobs that have builds currently running"
+→ Uses jenkins_list_jobs + jenkins_get_build to find active builds
+
+"What's the Jenkins server version and any system information?"
+→ Uses jenkins_get_version tool for server details
 ```
 
 ## Overview
@@ -265,7 +424,7 @@ This MCP server enables AI applications to interact with Jenkins instances secur
 - **Security Integration**: Secure authentication with API tokens
 - **AI Integration**: Seamless Claude Desktop and VS Code integration
 
-## Features
+## Features 🌟
 
 ### Available MCP Tools
 
@@ -315,24 +474,30 @@ This MCP server enables AI applications to interact with Jenkins instances secur
 ### Common Issues
 
 #### Authentication Failed
+
 - **Verify credentials**: Check JENKINS_URL, JENKINS_USERNAME, and JENKINS_API_TOKEN
 - **Test connection**: Use curl to verify credentials:
+
   ```bash
   curl -u username:token https://your-jenkins.com/api/json
   ```
+
 - **API Token**: Ensure you're using a valid Jenkins API token (not password)
 
 #### Server Not Starting
+
 - **Check Deno**: Verify Deno installation with `deno --version`
 - **Environment variables**: Ensure all required variables are set in `.env.local`
 - **File paths**: Verify absolute paths in configurations
 
 #### Connection Timeout
+
 - **Increase timeout**: Set `JENKINS_TIMEOUT=60000` (60 seconds)
 - **Network connectivity**: Test connection to Jenkins server
 - **Jenkins availability**: Verify Jenkins server is running and accessible
 
 #### MCP Client Connection Issues
+
 - **Claude Desktop**: Restart Claude Desktop after configuration changes
 - **VS Code**: Reload VS Code window after updating `.vscode/mcp.json`
 - **File paths**: Use absolute paths in configuration files
@@ -351,7 +516,7 @@ make start
 ```bash
 # Quick testing with Makefile
 make help           # Show all available commands with descriptions
-make test           # Run the test suite  
+make test           # Run tests
 make deploy-test    # Comprehensive deployment testing
 
 # Manual JSON-RPC testing (if needed)
@@ -459,13 +624,15 @@ make quality    # Run all quality checks
 make build-all  # Build all platforms
 ```
 
-**📖 [Complete CI/CD Integration Guide](docs/CI_CD_INTEGRATION.md)** - Examples for GitHub Actions, GitLab CI, Jenkins, Azure DevOps, CircleCI, and more!
+**📖 [Complete CI/CD Integration Guide](docs/CI_CD_INTEGRATION.md)** - Examples for GitHub Actions,
+GitLab CI, Jenkins, Azure DevOps, CircleCI, and more!
 
 - **✅ Makefile**: Unified build system with 20+ targets
 - **📋 Migration Guide**: See `MIGRATION.md` for shell script migration details
 - **🎯 Benefits**: Standardized commands, cross-platform builds, environment validation
 
 **Common Commands:**
+
 ```bash
 make install       # Setup environment
 make start         # Start server
@@ -481,7 +648,8 @@ Additional documentation is available in the [`/docs`](docs/) directory:
 - **[API Reference](docs/api/API_REFERENCE.md)**: Complete tool documentation
 - **[System Architecture](docs/architecture/SYSTEM_ARCHITECTURE.md)**: Technical design
 - **[Deployment Guide](docs/guides/DEPLOYMENT.md)**: Production deployment
-- **[Contributing Guidelines](docs/CONTRIBUTING.md)**: Development workflow
+- **[Contributing Guidelines](CONTRIBUTING.md)**: Quick start for contributors
+- **[Detailed Contributing Guide](docs/CONTRIBUTING.md)**: Comprehensive development workflow
 - **[VS Code Setup Guide](.vscode/SETUP.md)**: Comprehensive VS Code integration
 
 ### 🚀 CI/CD Pipeline
@@ -497,54 +665,52 @@ Our CI/CD pipeline automatically builds and tests across multiple platforms:
 - **✅ Container Registry**: Docker images published to GitHub Container Registry
 
 **Recent Improvements:**
+
 - Upgraded to Deno 2.0.0 for lockfile v4 compatibility
 - Fixed ARM64 cross-compilation issues
 - Enhanced build caching and performance
 
 **Workflow Triggers:**
+
 - Push to `main` branch
 - Pull requests
 - Manual workflow dispatch
 
 ## 🤝 Contributing
 
-### Development Workflow
+We welcome contributions from developers of all skill levels! Whether you're fixing bugs, adding features,
+improving documentation, or helping with testing, your contributions make this project better.
 
-1. **Fork and Clone**: Fork the repository and clone your fork
-   ```bash
-   git clone https://github.com/your-username/jenkins-mcp.git
-   cd jenkins-mcp
-   ```
+### Quick Start for Contributors
 
-2. **Setup Development Environment**: 
-   ```bash
-   make install        # Install dependencies and setup .env.local
-   make dev           # Start development server with auto-reload
-   ```
+```bash
+# 1. Fork and clone the repository
+git clone https://github.com/your-username/jenkins-mcp.git
+cd jenkins-mcp
 
-3. **Create Feature Branch**: 
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
+# 2. Setup development environment
+make install
 
-4. **Make Changes and Test**:
-   ```bash
-   make quality       # Run all quality checks (format, lint, check)
-   make test          # Run unit tests
-   make build         # Verify build works
-   ```
+# 3. Make your changes and test
+make quality    # Run all quality checks
+make test       # Run tests
 
-5. **Commit Changes**:
-   ```bash
-   git add .
-   git commit -m 'Add amazing feature'
-   ```
+# 4. Submit your contribution
+git add .
+git commit -m "feat: your amazing contribution"
+git push origin feature/amazing-feature
+```
 
-6. **Push and Create PR**:
-   ```bash
-   git push origin feature/amazing-feature
-   # Then create Pull Request on GitHub
-   ```
+**📋 [Contributing Guide](CONTRIBUTING.md)** - Complete guide with setup, workflow, and coding standards
+
+### What We're Looking For
+
+- **🔧 New Jenkins Tools**: Expand MCP tool capabilities
+- **🐛 Bug Fixes**: Improve reliability and user experience  
+- **📚 Documentation**: Better guides, examples, and API docs
+- **🧪 Testing**: Increase test coverage and quality
+- **🚀 Performance**: Optimize existing functionality
+- **🎨 Developer Experience**: Improve tooling and workflows
 
 ### Code Quality Standards
 
@@ -562,7 +728,7 @@ make install       # Setup development environment
 make dev           # Development server with auto-reload
 make start         # Start the server
 make quality       # All quality checks (fmt + lint + check + test)
-make test          # Run test suite
+make test          # Run tests
 make build         # Build executable
 make docker-build  # Build Docker image
 make clean         # Clean build artifacts
@@ -574,6 +740,6 @@ MIT License - see LICENSE file for details.
 
 ## 🆘 Support
 
-- **Issues**: [GitHub Issues](https://github.com/your-org/jenkins-mcp-server/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/jenkins-mcp-server/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Worwae77/jenkins-mcp/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Worwae77/jenkins-mcp/discussions)
 - **Documentation**: Additional guides in [`/docs`](docs/) directory
