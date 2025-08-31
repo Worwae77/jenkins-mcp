@@ -79,20 +79,29 @@ jobs:
           case "${{ matrix.os }}" in
             "ubuntu-latest")
               make build-linux
-              mv jenkins-mcp-server-linux-x64 ${{ matrix.artifact }}
+              # Only move if source and destination are different
+              if [ "jenkins-mcp-server-linux-x64" != "${{ matrix.artifact }}" ]; then
+                mv jenkins-mcp-server-linux-x64 ${{ matrix.artifact }}
+              fi
               ;;
             "macos-latest")
               if [ "${{ matrix.target }}" = "aarch64-apple-darwin" ]; then
                 make build-macos-arm
-                mv jenkins-mcp-server-macos-arm64 ${{ matrix.artifact }}
+                if [ "jenkins-mcp-server-macos-arm64" != "${{ matrix.artifact }}" ]; then
+                  mv jenkins-mcp-server-macos-arm64 ${{ matrix.artifact }}
+                fi
               else
                 make build-macos
-                mv jenkins-mcp-server-macos-x64 ${{ matrix.artifact }}
+                if [ "jenkins-mcp-server-macos-x64" != "${{ matrix.artifact }}" ]; then
+                  mv jenkins-mcp-server-macos-x64 ${{ matrix.artifact }}
+                fi
               fi
               ;;
             "windows-latest")
               make build-windows
-              mv jenkins-mcp-server-windows-x64.exe ${{ matrix.artifact }}
+              if [ "jenkins-mcp-server-windows-x64.exe" != "${{ matrix.artifact }}" ]; then
+                mv jenkins-mcp-server-windows-x64.exe ${{ matrix.artifact }}
+              fi
               ;;
           esac
         shell: bash
