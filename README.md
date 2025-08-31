@@ -2,14 +2,14 @@
 
 A Model Context Protocol (MCP) server for Jenkins automation and management in enterprise environments.
 
-**Status:** ✅ Production Ready | **Version:** 1.0.0 | **Last Updated:** August 31, 2025  
+**Status:** ✅ Production Ready | **Version:** 2.0.0 | **Last Updated:** August 31, 2025  
 **Build System:** Makefile (Modern) + Shell Scripts (Legacy) | **CI/CD:** GitHub Actions ✅
 
 ## 🚀 Quick Start
 
 ### 1. Clone and Setup
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/Worwae77/jenkins-mcp.git
 cd jenkins-mcp
 make install        # Setup dependencies and environment
 ```
@@ -42,13 +42,13 @@ make start          # Start the MCP server
 
 ```bash
 # Pull the image
-docker pull ghcr.io/your-org/jenkins-mcp-server:latest
+docker pull ghcr.io/worwae77/jenkins-mcp:latest
 
 # Run with environment variables
 docker run -e JENKINS_URL=https://your-jenkins.com \
            -e JENKINS_USERNAME=your-username \
            -e JENKINS_API_TOKEN=your-api-token \
-           -i ghcr.io/your-org/jenkins-mcp-server:latest
+           -i ghcr.io/worwae77/jenkins-mcp:latest
 
 # Or use docker-compose
 wget https://raw.githubusercontent.com/your-org/jenkins-mcp-server/main/docker-compose.yml
@@ -91,7 +91,7 @@ JENKINS_API_TOKEN=your-api-token \
 ```bash
 # Prerequisites: Deno runtime v2.0+ and make
 # Clone and setup
-git clone <your-repo-url>
+git clone https://github.com/Worwae77/jenkins-mcp.git
 cd jenkins-mcp
 
 # Quick setup (installs dependencies and creates .env.local)
@@ -156,7 +156,7 @@ make deploy-test   # Test all deployment methods
            "-e", "JENKINS_USERNAME=your-username",
            "-e", "JENKINS_API_TOKEN=your-api-token",
            "-e", "LOG_LEVEL=info",
-           "ghcr.io/your-org/jenkins-mcp-server:latest"
+           "ghcr.io/worwae77/jenkins-mcp:latest"
          ]
        }
      }
