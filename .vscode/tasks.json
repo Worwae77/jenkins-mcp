@@ -4,7 +4,8 @@
         {
             "label": "Start Jenkins MCP Server",
             "type": "shell",
-            "command": "./start-server.sh",
+            "command": "make",
+            "args": ["start"],
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -51,14 +52,8 @@
         {
             "label": "Test MCP Server",
             "type": "shell",
-            "command": "echo",
-            "args": [
-                "'{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",\"params\":{}}'",
-                "|",
-                "timeout",
-                "10s",
-                "./start-server.sh"
-            ],
+            "command": "make",
+            "args": ["deploy-test"],
             "group": "test",
             "presentation": {
                 "echo": true,
@@ -69,16 +64,10 @@
                 "clear": false
             },
             "options": {
-                "cwd": "${workspaceFolder}",
-                "shell": {
-                    "executable": "/bin/bash",
-                    "args": [
-                        "-c"
-                    ]
-                }
+                "cwd": "${workspaceFolder}"
             },
             "problemMatcher": [],
-            "detail": "Test the MCP server with a sample tools/list request"
+            "detail": "Test the MCP server with comprehensive deployment testing"
         },
         {
             "label": "Lint Code",

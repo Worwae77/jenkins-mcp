@@ -109,7 +109,7 @@ For other MCP-compatible tools, use this base configuration:
 
 3. **Verify connection**:
    ```bash
-   ./start-server.sh
+   make start
    ```
 
 ### Production Configuration
@@ -127,17 +127,17 @@ For production deployments, consider:
 
 1. **Start the server**:
    ```bash
-   ./start-server.sh
+   make start
    ```
 
 2. **Test tools endpoint**:
    ```bash
-   echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | ./start-server.sh
+   echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | make start
    ```
 
 3. **Test actual Jenkins operation**:
    ```bash
-   echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"jenkins_list_jobs","arguments":{}}}' | ./start-server.sh
+   echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"jenkins_list_jobs","arguments":{}}}' | make start
    ```
 
 ### VS Code Testing
@@ -220,7 +220,7 @@ Enable detailed logging:
 3. **Command line**:
    ```bash
    export LOG_LEVEL=debug
-   ./start-server.sh
+   make start
    ```
 
 ## 🎉 Next Steps
