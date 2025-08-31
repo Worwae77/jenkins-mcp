@@ -1,0 +1,170 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-binaries:
+    name: Build Cross-Platform Binaries
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact: jenkins-mcp-server-linux-x64
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact: jenkins-mcp-server-macos-x64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact: jenkins-mcp-server-macos-arm64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact: jenkins-mcp-server-windows-x64.exe
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: '1.40.0'
+
+      - name: Check TypeScript
+        run: deno task check
+
+      - name: Run tests
+        run: deno task test
+        continue-on-error: true
+
+      - name: Build binary
+        run: |
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            deno compile --allow-net --allow-env --allow-read --allow-write --target ${{ matrix.target }} --output ${{ matrix.artifact }} src/simple-server.ts
+          else
+            deno compile --allow-net --allow-env --allow-read --allow-write --target ${{ matrix.target }} --output ${{ matrix.artifact }} src/simple-server.ts
+          fi
+        shell: bash
+
+      - name: Generate checksums
+        run: |
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            certutil -hashfile ${{ matrix.artifact }} SHA256 > ${{ matrix.artifact }}.sha256
+          else
+            shasum -a 256 ${{ matrix.artifact }} > ${{ matrix.artifact }}.sha256
+          fi
+        shell: bash
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            ${{ matrix.artifact }}
+            ${{ matrix.artifact }}.sha256
+
+  build-docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  release:
+    name: Create Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build-binaries, build-docker]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            artifacts/*/*
+          body: |
+            ## Jenkins MCP Server ${{ github.ref_name }}
+            
+            ### Installation Options
+            
+            #### 🐳 Docker (Recommended)
+            ```bash
+            docker pull ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+            ```
+            
+            #### 📦 Standalone Binaries
+            Download the appropriate binary for your platform:
+            - **Linux x64**: `jenkins-mcp-server-linux-x64`
+            - **macOS x64**: `jenkins-mcp-server-macos-x64`
+            - **macOS ARM64**: `jenkins-mcp-server-macos-arm64`
+            - **Windows x64**: `jenkins-mcp-server-windows-x64.exe`
+            
+            #### ✅ Verification
+            All binaries include SHA256 checksums for verification.
+            
+            ### What's Changed
+            See the generated release notes below for detailed changes.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

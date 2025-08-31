@@ -1,0 +1,159 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Start Jenkins MCP Server",
+            "type": "shell",
+            "command": "./start-server.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Start the Jenkins MCP Server with environment variables from .env.local"
+        },
+        {
+            "label": "Check TypeScript",
+            "type": "shell",
+            "command": "deno",
+            "args": [
+                "check",
+                "src/**/*.ts"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "detail": "Check TypeScript compilation for all source files"
+        },
+        {
+            "label": "Test MCP Server",
+            "type": "shell",
+            "command": "echo",
+            "args": [
+                "'{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",\"params\":{}}'",
+                "|",
+                "timeout",
+                "10s",
+                "./start-server.sh"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "shell": {
+                    "executable": "/bin/bash",
+                    "args": [
+                        "-c"
+                    ]
+                }
+            },
+            "problemMatcher": [],
+            "detail": "Test the MCP server with a sample tools/list request"
+        },
+        {
+            "label": "Lint Code",
+            "type": "shell",
+            "command": "deno",
+            "args": [
+                "lint",
+                "src/**/*.ts"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Run Deno linter on all TypeScript source files"
+        },
+        {
+            "label": "Format Code",
+            "type": "shell",
+            "command": "deno",
+            "args": [
+                "fmt",
+                "src/**/*.ts"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Format all TypeScript source files with Deno formatter"
+        },
+        {
+            "label": "Build Executable",
+            "type": "shell",
+            "command": "deno",
+            "args": [
+                "compile",
+                "--allow-net",
+                "--allow-env",
+                "--allow-read",
+                "--allow-write",
+                "--output",
+                "jenkins-mcp-server",
+                "src/simple-server.ts"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "detail": "Compile the Jenkins MCP Server to a standalone executable"
+        }
+    ]
+}

@@ -1,0 +1,45 @@
+# Documentation
+docs/
+*.md
+!README.md
+
+# Development files
+.vscode/
+.git/
+.gitignore
+deno.lock
+
+# Build artifacts
+jenkins-mcp-server*
+*.exe
+
+# Logs and temporary files
+*.log
+.env.local
+.env
+
+# Node modules (if any)
+node_modules/
+
+# Test files
+test/
+tests/
+*_test.ts
+*_test.js
+
+# IDE files
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# CI/CD files
+.github/
+
+# Documentation backup files
+*.backup
+DOCUMENTATION_CONSOLIDATION.md
+PROJECT_CLEANUP_SUMMARY.md

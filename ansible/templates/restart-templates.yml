@@ -1,0 +1,161 @@
+# Jenkins Agent Restart Templates Configuration
+# These templates provide pre-configured restart scenarios for common use cases
+
+templates:
+  # Standard graceful restart with health checks
+  graceful_restart:
+    description: "Standard graceful restart with comprehensive health checks"
+    platform: "auto"
+    ansible_playbook: "restart-jenkins-agent-{platform}.yml"
+    variables:
+      force: false
+      wait_timeout: 30
+      enable_health_check: true
+      backup_logs_enabled: true
+      jenkins_service: "jenkins-agent"
+    post_restart_checks:
+      - service_status
+      - log_analysis
+      - connectivity_test
+
+  # Emergency force restart for stuck agents
+  emergency_restart:
+    description: "Force restart for unresponsive or stuck agents"
+    platform: "auto"
+    ansible_playbook: "restart-jenkins-agent-{platform}.yml"
+    variables:
+      force: true
+      wait_timeout: 45
+      enable_health_check: true
+      backup_logs_enabled: true
+      kill_processes: true
+    post_restart_checks:
+      - service_status
+      - process_cleanup
+      - log_analysis
+      - connectivity_test
+      - resource_check
+
+  # Quick restart for build environments
+  build_env_restart:
+    description: "Quick restart optimized for build environments"
+    platform: "auto"
+    ansible_playbook: "restart-jenkins-agent-{platform}.yml"
+    variables:
+      force: false
+      wait_timeout: 15
+      enable_health_check: false
+      backup_logs_enabled: false
+      cleanup_workspace: true
+    post_restart_checks:
+      - service_status
+      - workspace_cleanup
+
+  # Production restart with full validation
+  production_restart:
+    description: "Production-safe restart with comprehensive validation"
+    platform: "auto"
+    ansible_playbook: "restart-jenkins-agent-{platform}.yml"
+    variables:
+      force: false
+      wait_timeout: 60
+      enable_health_check: true
+      backup_logs_enabled: true
+      validate_config: true
+      notify_teams: true
+    pre_restart_checks:
+      - running_builds_check
+      - maintenance_window_check
+    post_restart_checks:
+      - service_status
+      - log_analysis
+      - connectivity_test
+      - configuration_validation
+      - performance_baseline
+      - notification_send
+
+  # Memory leak recovery restart
+  memory_recovery_restart:
+    description: "Restart to address memory leaks and resource issues"
+    platform: "auto"
+    ansible_playbook: "restart-jenkins-agent-{platform}.yml"
+    variables:
+      force: true
+      wait_timeout: 40
+      enable_health_check: true
+      backup_logs_enabled: true
+      clear_temp_files: true
+      reset_jvm_options: true
+    pre_restart_checks:
+      - memory_usage_check
+      - temp_files_check
+    post_restart_checks:
+      - service_status
+      - memory_baseline
+      - log_analysis
+      - connectivity_test
+      - performance_monitor
+
+# Platform-specific overrides
+platform_overrides:
+  linux:
+    jenkins_service: "jenkins-agent"
+    log_path: "/var/log/jenkins-agent/"
+    temp_path: "/tmp/jenkins-*"
+    config_path: "/etc/jenkins-agent/"
+    
+  windows:
+    jenkins_service: "Jenkins Agent"
+    log_path: "C:\\Jenkins\\logs\\"
+    temp_path: "C:\\Temp\\jenkins-*"
+    config_path: "C:\\Jenkins\\config\\"
+
+# Health check definitions
+health_checks:
+  service_status:
+    description: "Verify service is running"
+    timeout: 30
+    critical: true
+    
+  log_analysis:
+    description: "Analyze logs for errors"
+    timeout: 15
+    critical: false
+    patterns:
+      - "ERROR"
+      - "FATAL"
+      - "OutOfMemoryError"
+      - "Connection refused"
+      
+  connectivity_test:
+    description: "Test connection to Jenkins master"
+    timeout: 10
+    critical: true
+    endpoints:
+      - "/computer/api/json"
+      - "/login"
+      
+  resource_check:
+    description: "Check system resources"
+    timeout: 20
+    critical: false
+    thresholds:
+      memory_usage: 90
+      disk_usage: 95
+      cpu_usage: 95
+
+# Notification settings
+notifications:
+  teams:
+    webhook_url: "${TEAMS_WEBHOOK_URL}"
+    enabled: false
+    
+  email:
+    smtp_server: "${SMTP_SERVER}"
+    recipients: ["jenkins-admins@company.com"]
+    enabled: false
+    
+  slack:
+    webhook_url: "${SLACK_WEBHOOK_URL}"
+    channel: "#jenkins-alerts"
+    enabled: false
