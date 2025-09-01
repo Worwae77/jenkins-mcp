@@ -37,6 +37,7 @@ Protocol (MCP). This documentation covers everything from basic setup to enterpr
 
 #### 🤝 **Development & Contribution**
 
+- **[Quick Contribution Guide](QUICK_CONTRIBUTION_GUIDE.md)** - 4-step GitHub workflow
 - **[Detailed Contributing Guide](CONTRIBUTING.md)** - Comprehensive development workflow
 - **[Experimental Roadmap](F005_EXPERIMENTAL_ROADMAP.md)** - v1.1 feature planning
 - **[Repositioning Summary](F005_REPOSITIONING_SUMMARY.md)** - Strategic decisions

@@ -42,11 +42,13 @@ export class JenkinsAuth {
   /**
    * Set SSL options for HTTP requests
    */
-  setSSLOptions(sslOptions: {
-    caCerts?: string[];
-    cert?: string;
-    key?: string;
-  } | null): void {
+  setSSLOptions(
+    sslOptions: {
+      caCerts?: string[];
+      cert?: string;
+      key?: string;
+    } | null,
+  ): void {
     this.sslOptions = sslOptions;
   }
 
@@ -131,8 +133,9 @@ export class JenkinsAuth {
 
       // Add SSL options if available (Deno-specific)
       // For disabled SSL verification, we don't add client options
-      if (this.sslOptions && 'Deno' in globalThis && config.ssl.verifySSL) {
-        (requestOptions as RequestInit & { client?: unknown }).client = this.sslOptions;
+      if (this.sslOptions && "Deno" in globalThis && config.ssl.verifySSL) {
+        (requestOptions as RequestInit & { client?: unknown }).client =
+          this.sslOptions;
       }
 
       const response = await fetch(crumbUrl, requestOptions);
@@ -179,10 +182,11 @@ export class JenkinsAuth {
         },
       };
 
-      // Add SSL options if available (Deno-specific) 
+      // Add SSL options if available (Deno-specific)
       // For disabled SSL verification, we don't add client options
-      if (this.sslOptions && 'Deno' in globalThis && config.ssl.verifySSL) {
-        (requestOptions as RequestInit & { client?: unknown }).client = this.sslOptions;
+      if (this.sslOptions && "Deno" in globalThis && config.ssl.verifySSL) {
+        (requestOptions as RequestInit & { client?: unknown }).client =
+          this.sslOptions;
       }
 
       const response = await fetch(whoAmIUrl, requestOptions);
@@ -295,8 +299,9 @@ export class JenkinsAuth {
 
     // Add SSL options if available (Deno-specific)
     // For disabled SSL verification, we don't add client options
-    if (this.sslOptions && 'Deno' in globalThis && config.ssl.verifySSL) {
-      (requestOptions as RequestInit & { client?: unknown }).client = this.sslOptions;
+    if (this.sslOptions && "Deno" in globalThis && config.ssl.verifySSL) {
+      (requestOptions as RequestInit & { client?: unknown }).client =
+        this.sslOptions;
     }
 
     const response = await fetch(url, requestOptions);

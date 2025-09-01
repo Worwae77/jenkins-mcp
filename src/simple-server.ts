@@ -750,8 +750,10 @@ ${buildSteps}
         troubleshootingGuide: getSSLTroubleshootingInfo(),
         currentEnvironment: {
           JENKINS_SSL_VERIFY: Deno.env.get("JENKINS_SSL_VERIFY") || "true",
-          JENKINS_SSL_ALLOW_SELF_SIGNED: Deno.env.get("JENKINS_SSL_ALLOW_SELF_SIGNED") || "false",
-          JENKINS_CA_CERT_PATH: Deno.env.get("JENKINS_CA_CERT_PATH") || "not set",
+          JENKINS_SSL_ALLOW_SELF_SIGNED:
+            Deno.env.get("JENKINS_SSL_ALLOW_SELF_SIGNED") || "false",
+          JENKINS_CA_CERT_PATH: Deno.env.get("JENKINS_CA_CERT_PATH") ||
+            "not set",
           JENKINS_SSL_DEBUG: Deno.env.get("JENKINS_SSL_DEBUG") || "false",
         },
       };
@@ -760,7 +762,9 @@ ${buildSteps}
         content: [
           {
             type: "text",
-            text: `SSL/TLS Configuration and Diagnostics:\n\n${JSON.stringify(sslInfo, null, 2)}`,
+            text: `SSL/TLS Configuration and Diagnostics:\n\n${
+              JSON.stringify(sslInfo, null, 2)
+            }`,
           },
         ],
       };
