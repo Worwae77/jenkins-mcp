@@ -1,6 +1,7 @@
 # VS Code Configuration Templates
 
-This directory contains template files for VS Code development setup. **These files are NOT tracked by Git** to prevent accidental credential exposure.
+This directory contains template files for VS Code development setup. **These
+files are NOT tracked by Git** to prevent accidental credential exposure.
 
 ## 🚀 **Quick Setup**
 
@@ -21,13 +22,15 @@ This directory contains template files for VS Code development setup. **These fi
 ## 📁 **Available Templates**
 
 - **`mcp.json.template`** - MCP server configuration for Jenkins
-- **`launch.json.template`** - Debug configuration  
+- **`launch.json.template`** - Debug configuration
 - **`tasks.json.template`** - Build and development tasks
 - **`settings.json.template`** - VS Code workspace settings
 
 ## 🔐 **Security Note**
 
-The entire `.vscode/` directory is gitignored to prevent credential exposure. You can safely add real Jenkins credentials to files in `.vscode/` after copying from templates.
+The entire `.vscode/` directory is gitignored to prevent credential exposure.
+You can safely add real Jenkins credentials to files in `.vscode/` after copying
+from templates.
 
 ## 🎯 **Alternative: Environment Variables**
 

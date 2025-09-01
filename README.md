@@ -1,9 +1,12 @@
 # Jenkins MCP Server
 
-A Model Context Protocol (MCP) server for Jenkins automation and management in enterprise environments.
+A Model Context Protocol (MCP) server for Jenkins automation and management in
+enterprise environments.
 
-**Status:** ✅ Production Ready | **Version:** 2.1.0 | **Last Updated:** September 1, 2025  
-**Build System:** Makefile (Modern) + Shell Scripts (Legacy) | **CI/CD:** GitHub Actions ✅
+**Status:** ✅ Production Ready | **Version:** 2.1.0 | **Last Updated:**
+September 1, 2025\
+**Build System:** Makefile (Modern) + Shell Scripts (Legacy) | **CI/CD:** GitHub
+Actions ✅
 
 ## 🚀 Quick Start
 
@@ -58,7 +61,8 @@ JENKINS_API_TOKEN=your-api-token \
 
 ### 🤖 AI Integration
 
-- **Claude Desktop**: Copy configuration from `.vscode/claude_desktop_config.json`
+- **Claude Desktop**: Copy configuration from
+  `.vscode/claude_desktop_config.json`
 - **VS Code**: Open workspace - MCP configuration auto-detected
 - **Other Tools**: Use any installation method above
 
@@ -180,10 +184,12 @@ make deploy-test   # Test all deployment methods
 
 ### With Claude Desktop
 
-1. **Install Claude Desktop**: Download from [Anthropic](https://claude.ai/download)
+1. **Install Claude Desktop**: Download from
+   [Anthropic](https://claude.ai/download)
 
 2. **Configure Claude Desktop**: Add to your configuration file:
-   - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - **macOS**:
+     `~/Library/Application Support/Claude/claude_desktop_config.json`
    - **Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
 
    **Option A: Docker Deployment**
@@ -194,11 +200,17 @@ make deploy-test   # Test all deployment methods
        "jenkins-mcp-server": {
          "command": "docker",
          "args": [
-           "run", "-i", "--rm",
-           "-e", "JENKINS_URL=https://your-jenkins.com",
-           "-e", "JENKINS_USERNAME=your-username",
-           "-e", "JENKINS_API_TOKEN=your-api-token",
-           "-e", "LOG_LEVEL=info",
+           "run",
+           "-i",
+           "--rm",
+           "-e",
+           "JENKINS_URL=https://your-jenkins.com",
+           "-e",
+           "JENKINS_USERNAME=your-username",
+           "-e",
+           "JENKINS_API_TOKEN=your-api-token",
+           "-e",
+           "LOG_LEVEL=info",
            "ghcr.io/worwae77/jenkins-mcp:latest"
          ]
        }
@@ -255,26 +267,30 @@ make deploy-test   # Test all deployment methods
 
 ### With VS Code Extensions
 
-1. **Install MCP Extension**: Search for "MCP" or "Model Context Protocol" in VS Code extensions
+1. **Install MCP Extension**: Search for "MCP" or "Model Context Protocol" in VS
+   Code extensions
 
-2. **Configure Workspace**: The `.vscode/mcp.json` file will be automatically detected by MCP-compatible extensions
+2. **Configure Workspace**: The `.vscode/mcp.json` file will be automatically
+   detected by MCP-compatible extensions
 
-3. **VS Code Development Setup**: This workspace includes pre-configured VS Code integration:
+3. **VS Code Development Setup**: This workspace includes pre-configured VS Code
+   integration:
    - **Ready-to-use tasks**: `Ctrl/Cmd + Shift + P` → "Tasks: Run Task"
      - Start Jenkins MCP Server
-     - Check TypeScript compilation  
+     - Check TypeScript compilation
      - Test MCP Server with sample requests
      - Build executable
      - Format and lint code
    - **Debug configuration**: Press `F5` to start debugging with breakpoints
-   - **Environment auto-loading**: Credentials from `.env.local` automatically loaded
+   - **Environment auto-loading**: Credentials from `.env.local` automatically
+     loaded
 
 4. **Quick VS Code Setup**:
 
    ```bash
    # Copy pre-configured settings (if needed)
    cp .vscode/claude_desktop_config.json ~/Library/Application\ Support/Claude/claude_desktop_config.json
-   
+
    # Update paths in the configuration to match your system
    # Then restart Claude Desktop
    ```
@@ -419,7 +435,8 @@ make deploy-test   # Test all deployment methods
 
 ## Overview
 
-This MCP server enables AI applications to interact with Jenkins instances securely and efficiently. It provides:
+This MCP server enables AI applications to interact with Jenkins instances
+securely and efficiently. It provides:
 
 - **Job Management**: List, create, trigger, and monitor Jenkins jobs
 - **Build Operations**: Get build status, logs, and control execution
@@ -480,7 +497,8 @@ This MCP server enables AI applications to interact with Jenkins instances secur
 
 #### Authentication Failed
 
-- **Verify credentials**: Check JENKINS_URL, JENKINS_USERNAME, and JENKINS_API_TOKEN
+- **Verify credentials**: Check JENKINS_URL, JENKINS_USERNAME, and
+  JENKINS_API_TOKEN
 - **Test connection**: Use curl to verify credentials:
 
   ```bash
@@ -492,7 +510,8 @@ This MCP server enables AI applications to interact with Jenkins instances secur
 #### Server Not Starting
 
 - **Check Deno**: Verify Deno installation with `deno --version`
-- **Environment variables**: Ensure all required variables are set in `.env.local`
+- **Environment variables**: Ensure all required variables are set in
+  `.env.local`
 - **File paths**: Verify absolute paths in configurations
 
 #### Connection Timeout
@@ -591,12 +610,13 @@ deno test tests/basic.test.ts tests/validation.test.ts --allow-read --allow-env 
 
 - **`tests/basic.test.ts`** - Project structure and environment validation
 - **`tests/validation.test.ts`** - Input validation for Jenkins API calls
-- **`tests/ssl.test.ts`** - SSL/TLS configuration and certificate handling  
+- **`tests/ssl.test.ts`** - SSL/TLS configuration and certificate handling
 - **`tests/jenkins-auth.test.ts`** - Authentication mechanisms (token/password)
 - **`tests/jenkins-client.test.ts`** - Jenkins API client functionality
 - **`tests/logger.test.ts`** - Logging system comprehensive testing
 
 **Test Environment Setup**:
+
 ```bash
 # For full test suite, create .env.local with test values:
 JENKINS_URL=https://test-jenkins.example.com
@@ -605,7 +625,8 @@ JENKINS_API_TOKEN=test-token-placeholder
 JENKINS_SSL_VERIFY=false
 ```
 
-See [`tests/TEST_COVERAGE_REPORT.md`](tests/TEST_COVERAGE_REPORT.md) for detailed coverage information.
+See [`tests/TEST_COVERAGE_REPORT.md`](tests/TEST_COVERAGE_REPORT.md) for
+detailed coverage information.
 
 ## 🔐 Security & Configuration
 
@@ -645,18 +666,24 @@ JENKINS_CLIENT_KEY_PATH=/path/to/client.key   # Client private key file
 
 ### SSL/TLS Support 🔒
 
-**Security-First Approach**: SSL certificate validation is **enabled by default** for maximum security.
+**Security-First Approach**: SSL certificate validation is **enabled by
+default** for maximum security.
 
-Enterprise-ready SSL configuration for internal networks and organizational CA certificates:
+Enterprise-ready SSL configuration for internal networks and organizational CA
+certificates:
 
 - **🟢 Secure by Default**: SSL verification enabled - no configuration needed
-- **🟡 Custom CA Certificates**: Support for organizational certificate authorities  
-- **🟡 Self-Signed Certificates**: Development environment support (use with caution)
-- **🔴 SSL Bypass**: Corporate emergency option (INSECURE - use only when necessary)
+- **🟡 Custom CA Certificates**: Support for organizational certificate
+  authorities
+- **🟡 Self-Signed Certificates**: Development environment support (use with
+  caution)
+- **🔴 SSL Bypass**: Corporate emergency option (INSECURE - use only when
+  necessary)
 - **🔧 Mutual TLS**: Client certificate authentication support
 - **🔍 SSL Debugging**: Detailed logging for troubleshooting SSL issues
 
 **Production Configuration (Secure - Default):**
+
 ```bash
 # Secure configuration - no special setup needed
 JENKINS_URL=https://jenkins.company.com
@@ -664,6 +691,7 @@ JENKINS_SSL_VERIFY=true          # Default - SSL verification enabled
 ```
 
 **Corporate CA Configuration:**
+
 ```bash
 # Corporate Jenkins with organizational CA certificate
 JENKINS_URL=https://jenkins.company.com
@@ -672,6 +700,7 @@ JENKINS_SSL_VERIFY=true          # Still secure with custom CA
 ```
 
 **⚠️ Corporate Emergency Configuration (INSECURE):**
+
 ```bash
 # Only for corporate networks with SSL proxy issues
 JENKINS_URL=https://jenkins.company.com
@@ -679,11 +708,13 @@ JENKINS_SSL_BYPASS_ALL=true     # ⚠️ DISABLES ALL SSL SECURITY
 JENKINS_SSL_DEBUG=true          # Help diagnose SSL issues
 ```
 
-🔗 **For complete SSL security guide:** [SSL_SECURITY_GUIDE.md](SSL_SECURITY_GUIDE.md)
+🔗 **For complete SSL security guide:**
+[SSL_SECURITY_GUIDE.md](SSL_SECURITY_GUIDE.md)
 
 ### Build Commands
 
 **Secure Builds (Default - Recommended):**
+
 ```bash
 make start          # Secure SSL verification enabled
 make build          # Build secure binary
@@ -691,13 +722,15 @@ make test           # Test with SSL verification
 ```
 
 **Corporate Emergency Builds (INSECURE):**
+
 ```bash
 make start-corporate    # ⚠️ Start with SSL bypass (INSECURE)
 make build-corporate    # ⚠️ Build with SSL bypass (INSECURE) 
 make test-corporate     # ⚠️ Test with SSL bypass (INSECURE)
 ```
 
-📖 **For detailed SSL configuration guide, see:** [docs/SSL_CONFIGURATION.md](docs/SSL_CONFIGURATION.md)
+📖 **For detailed SSL configuration guide, see:**
+[docs/SSL_CONFIGURATION.md](docs/SSL_CONFIGURATION.md)
 
 ### Security Best Practices
 
@@ -710,18 +743,21 @@ make test-corporate     # ⚠️ Test with SSL bypass (INSECURE)
    ```
 
 2. **Use API Tokens**: Always prefer API tokens over passwords
-3. **Environment Variables**: Store credentials in environment variables, not config files
+3. **Environment Variables**: Store credentials in environment variables, not
+   config files
 4. **Network Security**: Ensure secure communication with Jenkins (HTTPS)
 5. **Access Control**: Verify Jenkins user has appropriate permissions
 6. **Regular Rotation**: Rotate API tokens regularly
 
-📖 **Complete Security Guide**: [SECURITY_CONFIGURATION.md](SECURITY_CONFIGURATION.md)
+📖 **Complete Security Guide**:
+[SECURITY_CONFIGURATION.md](SECURITY_CONFIGURATION.md)
 
 ## 📚 Documentation
 
 ### 🏗️ Build System
 
-This project uses a **modern Makefile-based build system** for consistency and ease of use:
+This project uses a **modern Makefile-based build system** for consistency and
+ease of use:
 
 ### 🔄 CI/CD Integration
 
@@ -734,12 +770,13 @@ make quality    # Run all quality checks
 make build-all  # Build all platforms
 ```
 
-**📖 [Complete CI/CD Integration Guide](docs/CI_CD_INTEGRATION.md)** - Examples for GitHub Actions,
-GitLab CI, Jenkins, Azure DevOps, CircleCI, and more!
+**📖 [Complete CI/CD Integration Guide](docs/CI_CD_INTEGRATION.md)** - Examples
+for GitHub Actions, GitLab CI, Jenkins, Azure DevOps, CircleCI, and more!
 
 - **✅ Makefile**: Unified build system with 20+ targets
 - **📋 Migration Guide**: See `MIGRATION.md` for shell script migration details
-- **🎯 Benefits**: Standardized commands, cross-platform builds, environment validation
+- **🎯 Benefits**: Standardized commands, cross-platform builds, environment
+  validation
 
 **Common Commands:**
 
@@ -756,10 +793,12 @@ make test          # Run test suite
 Additional documentation is available in the [`/docs`](docs/) directory:
 
 - **[API Reference](docs/api/API_REFERENCE.md)**: Complete tool documentation
-- **[System Architecture](docs/architecture/SYSTEM_ARCHITECTURE.md)**: Technical design
+- **[System Architecture](docs/architecture/SYSTEM_ARCHITECTURE.md)**: Technical
+  design
 - **[Deployment Guide](docs/guides/DEPLOYMENT.md)**: Production deployment
 - **[Contributing Guidelines](CONTRIBUTING.md)**: Quick start for contributors
-- **[Detailed Contributing Guide](docs/CONTRIBUTING.md)**: Comprehensive development workflow
+- **[Detailed Contributing Guide](docs/CONTRIBUTING.md)**: Comprehensive
+  development workflow
 - **[VS Code Setup Guide](.vscode/SETUP.md)**: Comprehensive VS Code integration
 
 ### 🚀 CI/CD Pipeline
@@ -772,7 +811,8 @@ Our CI/CD pipeline automatically builds and tests across multiple platforms:
 - **✅ Docker Multi-Architecture**: `linux/amd64`, `linux/arm64`
 - **✅ Automated Testing**: TypeScript compilation, linting, formatting
 - **✅ Artifact Generation**: Standalone binaries for all platforms
-- **✅ Container Registry**: Docker images published to GitHub Container Registry
+- **✅ Container Registry**: Docker images published to GitHub Container
+  Registry
 
 **Recent Improvements:**
 
@@ -788,12 +828,14 @@ Our CI/CD pipeline automatically builds and tests across multiple platforms:
 
 ## 🤝 Contributing
 
-We welcome contributions from developers of all skill levels! Whether you're fixing bugs, adding features,
-improving documentation, or helping with testing, your contributions make this project better.
+We welcome contributions from developers of all skill levels! Whether you're
+fixing bugs, adding features, improving documentation, or helping with testing,
+your contributions make this project better.
 
 ### GitHub Contribution Workflow
 
 **Step 1: Create GitHub Issue** 📝
+
 ```bash
 # Before coding, open a GitHub issue to discuss your idea:
 # 🐛 Bug Report: Use bug_report.md template
@@ -802,6 +844,7 @@ improving documentation, or helping with testing, your contributions make this p
 ```
 
 **Step 2: Create Development Branch** 🌿
+
 ```bash
 # 1. Fork and clone the repository
 git clone https://github.com/your-username/jenkins-mcp.git
@@ -814,6 +857,7 @@ git checkout -b fix/issue-456-critical-bug
 ```
 
 **Step 3: Build and Test** 🧪
+
 ```bash
 # 1. Setup development environment
 make install
@@ -828,6 +872,7 @@ make deploy-test  # Test Docker and binary deployments
 ```
 
 **Step 4: Open Pull Request** 🚀
+
 ```bash
 # 1. Commit with conventional commit format
 git add .
@@ -842,23 +887,29 @@ git push origin feature/issue-123-amazing-feature
 #    - Completed checklist from PR template
 ```
 
-**📋 [Contributing Guide](CONTRIBUTING.md)** - Complete guide with setup, workflow, and coding standards
+**📋 [Contributing Guide](CONTRIBUTING.md)** - Complete guide with setup,
+workflow, and coding standards
 
-**🚀 [Quick Contribution Guide](docs/QUICK_CONTRIBUTION_GUIDE.md)** - 4-step GitHub workflow for contributors
+**🚀 [Quick Contribution Guide](docs/QUICK_CONTRIBUTION_GUIDE.md)** - 4-step
+GitHub workflow for contributors
 
 ### GitHub Issue Templates
 
 We provide templates to help you create better issues:
 
-- **🐛 [Bug Report](.github/ISSUE_TEMPLATE/bug_report.md)** - Report bugs with reproduction steps
-- **✨ [Feature Request](.github/ISSUE_TEMPLATE/feature_request.md)** - Suggest new features or improvements
-- **🔧 [SSL Implementation](.github/ISSUE_TEMPLATE/ssl-implementation.md)** - SSL/TLS related development
-- **🔒 [SSL Support](.github/ISSUE_TEMPLATE/ssl-support.md)** - SSL configuration help
+- **🐛 [Bug Report](.github/ISSUE_TEMPLATE/bug_report.md)** - Report bugs with
+  reproduction steps
+- **✨ [Feature Request](.github/ISSUE_TEMPLATE/feature_request.md)** - Suggest
+  new features or improvements
+- **🔧 [SSL Implementation](.github/ISSUE_TEMPLATE/ssl-implementation.md)** -
+  SSL/TLS related development
+- **🔒 [SSL Support](.github/ISSUE_TEMPLATE/ssl-support.md)** - SSL
+  configuration help
 
 ### What We're Looking For
 
 - **🔧 New Jenkins Tools**: Expand MCP tool capabilities
-- **🐛 Bug Fixes**: Improve reliability and user experience  
+- **🐛 Bug Fixes**: Improve reliability and user experience
 - **📚 Documentation**: Better guides, examples, and API docs
 - **🧪 Testing**: Increase test coverage and quality
 - **🚀 Performance**: Optimize existing functionality
@@ -893,5 +944,6 @@ MIT License - see LICENSE file for details.
 ## 🆘 Support
 
 - **Issues**: [GitHub Issues](https://github.com/Worwae77/jenkins-mcp/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Worwae77/jenkins-mcp/discussions)
+- **Discussions**:
+  [GitHub Discussions](https://github.com/Worwae77/jenkins-mcp/discussions)
 - **Documentation**: Additional guides in [`/docs`](docs/) directory
