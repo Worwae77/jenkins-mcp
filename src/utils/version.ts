@@ -3,7 +3,7 @@
  */
 
 // Version is embedded at build time - update this when releasing new versions
-export const VERSION = "2.3.1";
+export const VERSION = "2.4.0";
 export const NAME = "jenkins-mcp-server";
 export const DESCRIPTION =
   "Model Context Protocol server for Jenkins automation and management";
