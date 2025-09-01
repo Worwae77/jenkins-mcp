@@ -190,6 +190,18 @@ docker-build: check-env ## Build Docker image
 	}
 	@echo "$(GREEN)Docker image build attempted: $(DOCKER_IMAGE):$(DOCKER_TAG)$(NC)"
 
+docker-build-ci: ## Build Docker image for CI/CD (no environment check)
+	@echo "$(GREEN)Building Docker image for CI/CD...$(NC)"
+	@echo "$(BLUE)Using corporate-friendly approach with pre-built binaries$(NC)"
+	@docker build -f Dockerfile.corporate -t $(DOCKER_IMAGE):$(DOCKER_TAG) . || { \
+		echo "$(YELLOW)Corporate Docker build failed, trying standard build$(NC)"; \
+		docker build -t $(DOCKER_IMAGE):$(DOCKER_TAG) . || { \
+			echo "$(RED)Both Docker builds failed$(NC)"; \
+			exit 1; \
+		}; \
+	}
+	@echo "$(GREEN)Docker image built for CI: $(DOCKER_IMAGE):$(DOCKER_TAG)$(NC)"
+
 docker-test: check-env ## Test Docker deployment (with corporate network fallback)
 	@echo "$(GREEN)Testing Docker deployment...$(NC)"
 	@echo "$(BLUE)Checking Docker availability...$(NC)"
