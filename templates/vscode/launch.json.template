@@ -1,0 +1,28 @@
+{
+    // VS Code Launch Configuration Template
+    // Copy to .vscode/launch.json and customize as needed
+    
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Jenkins MCP Server",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/simple-server.ts",
+            "runtime": "deno",
+            "runtimeArgs": [
+                "run",
+                "--allow-all",
+                "--inspect-wait"
+            ],
+            "env": {
+                "JENKINS_URL": "https://your-jenkins-server.com",
+                "JENKINS_USERNAME": "your-username", 
+                "JENKINS_API_TOKEN": "your-api-token",
+                "LOG_LEVEL": "debug"
+            },
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        }
+    ]
+}

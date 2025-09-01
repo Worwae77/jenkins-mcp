@@ -30,11 +30,15 @@ git clone https://github.com/Worwae77/jenkins-mcp.git
 cd jenkins-mcp
 make install        # Setup dependencies and environment
 
-# 2. Configure environment
+# 2. Configure environment (secure - uses gitignored files)
 cp .env.example .env.local
-# Edit .env.local with your Jenkins details
+nano .env.local     # Add your real Jenkins details
 
-# 3. Start the server
+# 3. Optional: Setup VS Code (templates only - safe)
+make setup-vscode   # Creates .vscode/ config from templates
+nano .vscode/mcp.json  # Add your real credentials (gitignored)
+
+# 4. Start the server
 make start          # Start the MCP server
 ```
 

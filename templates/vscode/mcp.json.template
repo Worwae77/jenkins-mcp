@@ -1,0 +1,57 @@
+{
+  // VS Code MCP Server Configuration Template for Jenkins MCP Server
+  // 
+  // INSTRUCTIONS:
+  // 1. Copy this file to .vscode/mcp.json
+  // 2. Replace placeholder values with your real Jenkins credentials
+  // 3. The .vscode/ directory is gitignored - safe to add real credentials
+  //
+  // SECURITY: Never commit real credentials to Git!
+  
+  "servers": {
+    "jenkins-mcp-local": {
+      "command": "deno",
+      "args": ["task", "start"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "JENKINS_URL": "https://your-jenkins-server.com",
+        "JENKINS_USERNAME": "your-username",
+        "JENKINS_API_TOKEN": "your-api-token",
+        "JENKINS_TIMEOUT": "30000",
+        "JENKINS_RETRIES": "3",
+        "LOG_LEVEL": "debug",
+        "JENKINS_SSL_VERIFY": "true"
+      }
+    },
+    
+    "jenkins-mcp-docker": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm", "--platform=linux/amd64",
+        "-e", "JENKINS_URL=https://your-jenkins-server.com",
+        "-e", "JENKINS_USERNAME=your-username",
+        "-e", "JENKINS_API_TOKEN=your-api-token",
+        "-e", "JENKINS_TIMEOUT=30000",
+        "-e", "JENKINS_RETRIES=3",
+        "-e", "LOG_LEVEL=debug",
+        "-e", "JENKINS_SSL_VERIFY=true",
+        "jenkins-mcp-multiarch:amd64"
+      ],
+      "cwd": "${workspaceFolder}"
+    },
+
+    "jenkins-mcp-corporate": {
+      "command": "deno",
+      "args": ["task", "start-corporate"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "JENKINS_URL": "https://your-jenkins-server.com",
+        "JENKINS_USERNAME": "your-username",
+        "JENKINS_API_TOKEN": "your-api-token",
+        "JENKINS_SSL_BYPASS_ALL": "true",
+        "JENKINS_SSL_DEBUG": "true",
+        "LOG_LEVEL": "debug"
+      }
+    }
+  }
+}

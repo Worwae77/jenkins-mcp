@@ -53,6 +53,29 @@ install: ## Install dependencies and setup environment
 	fi
 	@echo "$(GREEN)Installation complete!$(NC)"
 
+setup-vscode: ## Setup VS Code configuration from templates (SAFE - no credentials)
+	@echo "$(GREEN)Setting up VS Code configuration...$(NC)"
+	@mkdir -p .vscode
+	@if [ ! -f ".vscode/mcp.json" ]; then \
+		cp templates/vscode/mcp.json.template .vscode/mcp.json; \
+		echo "$(YELLOW)Created .vscode/mcp.json from template$(NC)"; \
+		echo "$(YELLOW)Edit .vscode/mcp.json with your real Jenkins credentials$(NC)"; \
+	fi
+	@if [ ! -f ".vscode/tasks.json" ]; then \
+		cp templates/vscode/tasks.json.template .vscode/tasks.json; \
+		echo "$(GREEN)Created .vscode/tasks.json$(NC)"; \
+	fi
+	@if [ ! -f ".vscode/launch.json" ]; then \
+		cp templates/vscode/launch.json.template .vscode/launch.json; \
+		echo "$(GREEN)Created .vscode/launch.json$(NC)"; \
+	fi
+	@if [ ! -f ".vscode/settings.json" ]; then \
+		cp templates/vscode/settings.json.template .vscode/settings.json; \
+		echo "$(GREEN)Created .vscode/settings.json$(NC)"; \
+	fi
+	@echo "$(GREEN)VS Code setup complete!$(NC)"
+	@echo "$(YELLOW)IMPORTANT: .vscode/ directory is gitignored - safe to add real credentials$(NC)"
+
 ## Development
 dev: check-env ## Start development server with auto-reload
 	@echo "$(GREEN)Starting development server...$(NC)"

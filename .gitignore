@@ -16,14 +16,8 @@ artifacts/jenkins-mcp-server-*
 # Deno cache
 .deno/
 
-# IDE files
-.vscode/settings.json
-.vscode/mcp.json.local
-.vscode/mcp.json.backup
-.vscode/*.backup
-.vscode/*.local
-.vscode/claude_desktop_config.json.local
-.vscode/launch.json.local
+# IDE files - NEVER commit to avoid credential exposure
+.vscode/
 .idea/
 *.swp
 *.swo
