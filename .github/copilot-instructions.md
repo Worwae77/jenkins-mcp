@@ -189,27 +189,91 @@ grep -r "sensitive|password|token|key" src/  # Check for hardcoded secrets
 test SSL diagnostics tool       # Validate configuration handling
 ```
 
-### Git Workflow & Security
+### Git Workflow & Security - MANDATORY GROUND RULES
 
-1. **Branch Strategy**
+⚠️ **NEVER work directly on `main` branch** - Always use feature branches for ALL changes, no exceptions.
+
+1. **Branch Strategy (MANDATORY)**
    ```bash
+   # ALWAYS create feature branch first
    git checkout -b feature/your-feature-name
+   # OR for fixes:
+   git checkout -b fix/issue-description
+   # OR for docs:
+   git checkout -b docs/documentation-update
+   
    # Develop and test
    git add . && git commit -m "descriptive message"
    git push origin feature/your-feature-name
    ```
 
-2. **Security Checklist Before Push**
+2. **Protected Main Branch Rules**
+   - 🚫 **NO direct commits to `main`** - This includes "quick fixes", CI/CD updates, or urgent patches
+   - 🚫 **NO pushing directly to `main`** - All changes must go through pull requests
+   - ✅ **Always use feature branches** - Even for single-line changes
+   - ✅ **All changes require PR review** - No exceptions for any type of change
+
+3. **Branch Naming Conventions**
+   - `feature/` - New features (e.g., `feature/ssl-diagnostics`)
+   - `fix/` - Bug fixes (e.g., `fix/github-actions-deno-version`)
+   - `docs/` - Documentation updates (e.g., `docs/update-copilot-instructions`)
+   - `refactor/` - Code refactoring (e.g., `refactor/jenkins-client`)
+   - `test/` - Test improvements (e.g., `test/ssl-unit-tests`)
+
+4. **Security Checklist Before Push**
    - ✅ No real credentials in any files
    - ✅ All configuration uses placeholders
    - ✅ Sensitive files added to .gitignore
    - ✅ Documentation includes security notes
+   - ✅ Working on feature branch (NOT main)
 
-3. **Pull Request Process**
+5. **Pull Request Process (REQUIRED)**
    - Create comprehensive PR description
    - Link to related issues
-   - Include testing validation
+   - Include testing validation results
    - Document security considerations
+   - Wait for CI/CD validation to pass
+   - Require at least basic review (even self-review for solo projects)
+
+6. **Emergency Hotfix Protocol**
+   Even for critical production issues:
+   ```bash
+   git checkout -b hotfix/critical-issue-name
+   # Make minimal fix
+   git commit -m "hotfix: brief description"
+   git push origin hotfix/critical-issue-name
+   # Create PR immediately, even if fast-tracked
+   ```
+
+7. **Lessons Learned (Sept 1, 2025)**
+   
+   **❌ ANTI-PATTERN: What NOT to do**
+   ```bash
+   # This happened during GitHub Actions fix - DON'T REPEAT:
+   git checkout main
+   # Make changes directly to .github/workflows/
+   git add .github/workflows/
+   git commit -m "fix: GitHub Actions issues"
+   git push origin main  # ← WRONG! This bypassed all safety measures
+   ```
+   
+   **✅ CORRECT PATTERN: What SHOULD have happened**
+   ```bash
+   # Proper workflow for ANY change, even "quick fixes":
+   git checkout -b fix/github-actions-deno-ssl
+   # Make the same changes
+   git add .github/workflows/
+   git commit -m "fix: Resolve GitHub Actions issues with Deno version and SSL handling"
+   git push origin fix/github-actions-deno-ssl
+   # Create PR, let CI validate, then merge to main
+   ```
+   
+   **Why this matters:**
+   - Code review catches potential issues
+   - CI/CD validates changes in isolation
+   - Easy rollback if problems are discovered
+   - Maintains audit trail and collaboration standards
+   - Prevents "cowboy coding" habits
 
 ## Documentation Philosophy
 
