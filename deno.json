@@ -18,7 +18,8 @@
     "test:corporate": "deno test --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors",
     "docker:build": "docker build -t jenkins-mcp-server:latest .",
     "docker:test": "make docker-test",
-    "test": "deno test --allow-net --allow-env --allow-read --allow-write",
+    "test": "JENKINS_URL=http://localhost:8080 JENKINS_USERNAME=test JENKINS_API_TOKEN=test MCP_SERVER_NAME=jenkins-mcp-server deno test --allow-net --allow-env --allow-read --allow-write",
+    "test:simple": "deno test --allow-net --allow-env --allow-read --allow-write",
     "check": "deno check src/**/*.ts",
     "fmt": "deno fmt src/**/*.ts",
     "lint": "deno lint src/**/*.ts"
