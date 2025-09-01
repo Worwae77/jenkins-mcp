@@ -216,17 +216,30 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build Docker image using corporate-friendly approach
+        shell: bash
         run: |
+          # Extract version from git tag for Docker build
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+          else
+            VERSION="0.0.0-dev"
+          fi
+          
           # Use CI-compatible Docker build target
           make docker-build-ci
           echo "CI Docker build completed successfully"
           
-          # Verify the image was built
-          if docker images jenkins-mcp-server:latest | grep -q jenkins-mcp-server; then
-            echo "✅ Docker image jenkins-mcp-server:latest built successfully"
-            docker images jenkins-mcp-server:latest
+          # Verify the image was built with correct version tag
+          if docker images jenkins-mcp-server:${VERSION} | grep -q jenkins-mcp-server; then
+            echo "✅ Docker image jenkins-mcp-server:${VERSION} built successfully"
+            docker images jenkins-mcp-server:${VERSION}
+            
+            # Also tag as latest for the registry push
+            docker tag jenkins-mcp-server:${VERSION} jenkins-mcp-server:latest
+            echo "✅ Tagged as jenkins-mcp-server:latest for registry push"
           else
-            echo "❌ Docker image jenkins-mcp-server:latest not found"
+            echo "❌ Docker image jenkins-mcp-server:${VERSION} not found"
+            docker images | grep jenkins-mcp-server || echo "No jenkins-mcp-server images found"
             exit 1
           fi
 
