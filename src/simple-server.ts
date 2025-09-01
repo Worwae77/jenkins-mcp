@@ -53,7 +53,45 @@ import { JenkinsClient } from "./jenkins/client.ts";
 import { logger } from "./utils/logger.ts";
 import { validateJobName } from "./utils/validation.ts";
 import { getSSLTroubleshootingInfo } from "./utils/ssl.ts";
-import { config } from "./utils/config.ts";
+import { config, initializeConfig, validateConfig } from "./utils/config.ts";
+import { displayVersion, getVersion } from "./utils/version.ts";
+
+// Parse command line arguments
+function parseArgs(): { showVersion: boolean; showHelp: boolean } {
+  const args = Deno.args;
+  return {
+    showVersion: args.includes("--version") || args.includes("-v"),
+    showHelp: args.includes("--help") || args.includes("-h"),
+  };
+}
+
+// Display help information
+async function displayHelp(): Promise<void> {
+  const versionInfo = await getVersion();
+  console.log(`Jenkins MCP Server v${versionInfo}`);
+  console.log(
+    "Model Context Protocol server for Jenkins automation and management",
+  );
+  console.log("");
+  console.log("Usage: jenkins-mcp-server [options]");
+  console.log("");
+  console.log("Options:");
+  console.log("  -v, --version     Show version information");
+  console.log("  -h, --help        Show this help message");
+  console.log("");
+  console.log("Environment Variables:");
+  console.log("  JENKINS_URL       Jenkins server URL (required)");
+  console.log("  JENKINS_USERNAME  Jenkins username");
+  console.log("  JENKINS_API_TOKEN Jenkins API token (recommended)");
+  console.log(
+    "  JENKINS_API_PASSWORD Jenkins password (alternative to API token)",
+  );
+  console.log("  MCP_SERVER_NAME   Server name (default: jenkins-mcp-server)");
+  console.log("");
+  console.log("Examples:");
+  console.log("  jenkins-mcp-server --version");
+  console.log("  JENKINS_URL=http://localhost:8080 jenkins-mcp-server");
+}
 
 // Jenkins client instance
 const jenkinsClient = new JenkinsClient();
@@ -1161,6 +1199,25 @@ async function handleRequest(request: MCPRequest): Promise<MCPResponse> {
 
 // Main function - handle stdio
 async function main() {
+  // Parse command line arguments first
+  const args = parseArgs();
+
+  if (args.showVersion) {
+    await displayVersion();
+    return;
+  }
+
+  if (args.showHelp) {
+    await displayHelp();
+    return;
+  }
+
+  // Initialize configuration with actual version
+  await initializeConfig();
+
+  // Validate configuration before starting the server
+  validateConfig();
+
   logger.info("Starting Jenkins MCP Server...");
 
   const decoder = new TextDecoder();
