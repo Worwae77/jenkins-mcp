@@ -4,6 +4,7 @@
 
 import type { SSLConfig } from "./ssl.ts";
 import { getSSLConfig } from "./ssl.ts";
+import { getVersion } from "./version.ts";
 
 interface Config {
   // Server configuration
@@ -57,7 +58,7 @@ function parseArrayEnv(key: string, fallback: string[] = []): string[] {
 export const config: Config = {
   // Server configuration
   serverName: getEnv("MCP_SERVER_NAME", "jenkins-mcp-server"),
-  serverVersion: getEnv("MCP_SERVER_VERSION", "1.0.0"),
+  serverVersion: getEnv("MCP_SERVER_VERSION", "2.3.1"),
 
   // Jenkins configuration
   jenkinsUrl: getEnv("JENKINS_URL"),
@@ -76,6 +77,19 @@ export const config: Config = {
   logLevel: getEnv("LOG_LEVEL", "INFO"),
   enableAuditLog: getEnv("ENABLE_AUDIT_LOG", "true") === "true",
 };
+
+/**
+ * Initialize config with actual version from deno.json
+ */
+export async function initializeConfig(): Promise<void> {
+  try {
+    const actualVersion = await getVersion();
+    // Update the config object in place
+    Object.assign(config, { serverVersion: actualVersion });
+  } catch (error) {
+    console.error("Failed to initialize version:", error);
+  }
+}
 
 /**
  * Validate configuration
@@ -103,6 +117,3 @@ export function validateConfig(): void {
     throw new Error("JENKINS_URL must be a valid URL");
   }
 }
-
-// Validate configuration on import
-validateConfig();
