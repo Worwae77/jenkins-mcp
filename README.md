@@ -106,8 +106,8 @@ docker-compose up
 
 **For corporate environments with SSL restrictions or proxy issues:**
 
-If you encounter SSL certificate errors during Docker builds (common in corporate
-environments), use the corporate-friendly approach:
+If you encounter SSL certificate errors during Docker builds (common in
+corporate environments), use the corporate-friendly approach:
 
 ```bash
 # 1. Clone the repository and build locally
@@ -135,7 +135,7 @@ docker run --env-file .env.local -i jenkins-mcp-server:corporate
 **Corporate Docker Benefits:**
 
 - ✅ No SSL certificate downloads during build
-- ✅ Works behind corporate proxies  
+- ✅ Works behind corporate proxies
 - ✅ Pre-built binary approach avoids network dependencies
 - ✅ Platform-specific builds (AMD64 for enterprise compatibility)
 - ✅ Tested in restricted corporate environments
