@@ -1,15 +1,18 @@
 # Jenkins MCP Server Makefile
+# ✅ CI/CD INTEGRATED: Uses git tags for version management, not manual editing
 # Provides standardized commands for building, testing, and deploying the Jenkins MCP Server
 
-.PHONY: help install clean build test docker start dev check fmt lint deploy-test
+.PHONY: help install clean build test docker start dev check fmt lint deploy-test version-info
 
 # Default target
 .DEFAULT_GOAL := help
 
-# Variables
+# Variables - Version extracted from git tags (proper CI/CD approach)
+GIT_TAG := $(shell git describe --tags --always 2>/dev/null || echo "v0.0.0-dev")
+VERSION := $(patsubst v%,%,$(GIT_TAG))
 BINARY_NAME := jenkins-mcp-server
 DOCKER_IMAGE := jenkins-mcp-server
-DOCKER_TAG := latest
+DOCKER_TAG := $(VERSION)
 ENV_FILE := .env.local
 ENV_EXAMPLE := .env.example
 
@@ -36,6 +39,16 @@ help: ## Show this help message
 	@echo "$(GREEN)Environment:$(NC)"
 	@echo "  DENO_VERSION: $$(deno --version 2>/dev/null | head -1 || echo 'Not installed')"
 	@echo "  DOCKER_VERSION: $$(docker --version 2>/dev/null || echo 'Not installed')"
+	@echo "  PROJECT_VERSION: $(VERSION) (from git tags)"
+
+version-info: ## Show current version information
+	@echo "$(BLUE)Version Information$(NC)"
+	@echo "==================="
+	@echo "Git Tag: $(GIT_TAG)"
+	@echo "Version: $(VERSION)"
+	@echo "Docker Tag: $(DOCKER_TAG)"
+	@echo ""
+	@echo "$(GREEN)✅ Versions managed by git tags (proper CI/CD)$(NC)"
 
 ## Installation and Setup
 install: ## Install dependencies and setup environment

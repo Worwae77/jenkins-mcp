@@ -1,16 +1,21 @@
 name: Build and Release
 
-# This workflow uses Makefile commands for consistency with local development.
-# This makes it easy to fork and adapt to other CI/CD systems - just use the same make commands!
-# Available commands: make help, make quality, make build-all, make docker-build, make release
+# ✅ PROPER CI/CD: This workflow is triggered ONLY by git tags created on GitHub server
+# This ensures all releases are built through automated CI/CD, not local development
+# 
+# RELEASE PROCESS:
+# 1. Create tag on GitHub server: git tag v2.5.0 && git push origin v2.5.0
+# 2. GitHub Actions automatically builds cross-platform binaries + Docker images
+# 3. Versions are consistent across all artifacts (Docker + binaries)
+# 4. No manual version editing in development required
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*'  # Only triggered by version tags (v2.5.0, v2.5.1, etc.)
   pull_request:
     branches: [ main ]
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger for testing
 
 permissions:
   contents: read
@@ -75,6 +80,28 @@ jobs:
 
       - name: Install dependencies
         run: make install
+
+      - name: Extract version from git tag
+        id: version
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+            echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+            echo "Building version: ${VERSION}"
+          else
+            echo "VERSION=0.0.0-dev" >> $GITHUB_OUTPUT
+            echo "Building development version"
+          fi
+
+      - name: Inject version into source code
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          echo "Injecting version: ${VERSION}"
+          # Update version in source code for compiled binary
+          sed -i.bak "s/0\.0\.0-dev/${VERSION}/g" src/utils/version.ts
+          # Update deno.json version for consistency
+          sed -i.bak "s/0\.0\.0-dev/${VERSION}/g" deno.json
+          echo "Version injection completed"
 
       - name: Run quality checks
         run: make quality
