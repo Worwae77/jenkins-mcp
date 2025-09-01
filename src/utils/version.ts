@@ -1,8 +1,8 @@
 /**
  * Version utilities for Jenkins MCP Server
- * 
+ *
  * ✅ CI/CD APPROACH: Version is determined by git tags, not hardcoded values
- * - In development: Shows "0.0.0-dev" 
+ * - In development: Shows "0.0.0-dev"
  * - In releases: GitHub Actions injects actual version from git tag
  * - Compiled binaries: Use embedded version from CI/CD build process
  */

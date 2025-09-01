@@ -2,11 +2,13 @@
 
 ## ✅ **CI/CD-First Approach: GitHub Server-Only Tagging**
 
-This document outlines the **correct** approach for releasing new versions using automated CI/CD, following DevOps best practices.
+This document outlines the **correct** approach for releasing new versions using
+automated CI/CD, following DevOps best practices.
 
 ## 🚫 **What NOT to Do (Anti-Patterns)**
 
 ❌ **Manual Version Editing in Development:**
+
 ```bash
 # WRONG - Manual editing of version files
 vim deno.json                    # Don't manually change version
@@ -15,6 +17,7 @@ git commit -m "bump version"     # Don't commit version changes locally
 ```
 
 ❌ **Working Directly on Main Branch:**
+
 ```bash
 # WRONG - Violates ground rules
 git checkout main
@@ -23,6 +26,7 @@ git push origin main  # Bypasses PR process
 ```
 
 ❌ **Inconsistent Release Artifacts:**
+
 - Building binaries locally with different versions
 - Docker images and binaries having mismatched versions
 - Manual release creation without CI/CD validation
@@ -30,6 +34,7 @@ git push origin main  # Bypasses PR process
 ## ✅ **Correct Release Process**
 
 ### **1. Development Phase**
+
 ```bash
 # Always use feature branches (mandatory ground rule)
 git checkout -b feature/my-feature
@@ -43,6 +48,7 @@ git push origin feature/my-feature
 ```
 
 ### **2. Release Preparation**
+
 ```bash
 # After PR is merged to main, prepare for release
 git checkout main
@@ -53,6 +59,7 @@ make version-info
 ```
 
 ### **3. Create Release Tag (GitHub Server Only)**
+
 ```bash
 # Create and push git tag - this triggers automated CI/CD
 git tag v2.5.0
@@ -60,6 +67,7 @@ git push origin v2.5.0
 ```
 
 ### **4. Automated CI/CD Pipeline**
+
 Once the tag is pushed, GitHub Actions automatically:
 
 1. **Quality Assurance:**
@@ -74,7 +82,7 @@ Once the tag is pushed, GitHub Actions automatically:
 
 3. **Cross-Platform Building:**
    - Builds Linux x64 binary
-   - Builds macOS x64 binary  
+   - Builds macOS x64 binary
    - Builds macOS ARM64 binary
    - Builds Windows x64 binary
    - All binaries have **identical version**
@@ -94,6 +102,7 @@ Once the tag is pushed, GitHub Actions automatically:
 ## 🔍 **Version Consistency Verification**
 
 ### **All Artifacts Have Same Version:**
+
 - ✅ `jenkins-mcp-server-linux-x64 --version` → `v2.5.0`
 - ✅ `jenkins-mcp-server-macos-x64 --version` → `v2.5.0`
 - ✅ `jenkins-mcp-server-macos-arm64 --version` → `v2.5.0`
@@ -101,6 +110,7 @@ Once the tag is pushed, GitHub Actions automatically:
 - ✅ Docker image: `ghcr.io/worwae77/jenkins-mcp:v2.5.0`
 
 ### **Verification Commands:**
+
 ```bash
 # Check version from any built binary
 ./jenkins-mcp-server --version
@@ -115,6 +125,7 @@ git tag --list | tail -1
 ## 🛠️ **Local Development Guidelines**
 
 ### **Version Management:**
+
 ```bash
 # Check current version (extracted from git tags)
 make version-info
@@ -127,6 +138,7 @@ make version-info
 ```
 
 ### **Testing Release Process Locally:**
+
 ```bash
 # Test the build process (without releasing)
 make build-all
@@ -164,6 +176,7 @@ git push origin v2.5.1
 ## 📋 **Release Checklist**
 
 ### **Before Creating Tag:**
+
 - [ ] All PRs merged to main
 - [ ] Local main branch updated (`git pull origin main`)
 - [ ] CI/CD passing on main branch
@@ -171,11 +184,13 @@ git push origin v2.5.1
 - [ ] Version number decided (semantic versioning)
 
 ### **Tag Creation:**
+
 - [ ] Tag follows semantic versioning (`v2.5.0`)
 - [ ] Tag pushed to GitHub server (`git push origin v2.5.0`)
 - [ ] GitHub Actions workflow triggered
 
 ### **After Release:**
+
 - [ ] Verify all binaries built successfully
 - [ ] Verify Docker image published
 - [ ] Verify version consistency across artifacts
@@ -184,7 +199,8 @@ git push origin v2.5.1
 
 ## 🎯 **Benefits of This Approach**
 
-1. **Version Consistency:** All artifacts (binaries + Docker) have identical versions
+1. **Version Consistency:** All artifacts (binaries + Docker) have identical
+   versions
 2. **Automated Quality:** Every release goes through full CI/CD validation
 3. **Audit Trail:** Complete history of releases through git tags
 4. **Security:** No manual version management reduces human error
@@ -200,4 +216,5 @@ git push origin v2.5.1
 
 ---
 
-**Remember: Releases should only come from GitHub workflows, triggered by git tags. No manual version management in development! 🎯**
+**Remember: Releases should only come from GitHub workflows, triggered by git
+tags. No manual version management in development! 🎯**
