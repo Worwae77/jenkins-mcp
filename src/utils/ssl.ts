@@ -27,7 +27,7 @@ export interface SSLConfig {
   // SSL verification settings
   verifySSL: boolean;
   allowSelfSigned: boolean;
-  
+
   // ⚠️ INSECURE - Corporate environments only
   bypassAllSSL: boolean;
 
@@ -63,10 +63,12 @@ export function getSSLConfig(): SSLConfig {
   const bypassAllSSL = ["true", "1", "yes", "on"].includes(
     Deno.env.get("JENKINS_SSL_BYPASS_ALL")?.toLowerCase() || "",
   );
-  
+
   if (bypassAllSSL) {
     logWarn("⚠️  SSL BYPASS ENABLED - ALL SSL VALIDATION DISABLED ⚠️");
-    logWarn("This is INSECURE and should only be used in corporate environments!");
+    logWarn(
+      "This is INSECURE and should only be used in corporate environments!",
+    );
   }
 
   const config: SSLConfig = {
