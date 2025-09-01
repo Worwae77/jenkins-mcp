@@ -6,6 +6,7 @@
 
 import { config } from "../utils/config.ts";
 import { logger } from "../utils/logger.ts";
+import { createSSLFetchOptions, validateSSLConfig } from "../utils/ssl.ts";
 import { JenkinsAuth } from "./auth.ts";
 import type {
   BuildLogsRequest,
@@ -27,6 +28,11 @@ export class JenkinsClient {
   private auth: JenkinsAuth;
   private timeout: number;
   private retries: number;
+  private sslOptions: {
+    caCerts?: string[];
+    cert?: string;
+    key?: string;
+  } | null = null;
 
   constructor(jenkinsConfig?: Partial<JenkinsConfig>) {
     this.jenkinsUrl = jenkinsConfig?.url || config.jenkinsUrl;
@@ -48,6 +54,28 @@ export class JenkinsClient {
 
     if (!this.auth.isConfigured()) {
       throw new Error("Jenkins authentication not configured");
+    }
+
+    // Validate and setup SSL configuration
+    try {
+      validateSSLConfig(config.ssl);
+      this.sslOptions = await createSSLFetchOptions(config.ssl);
+      
+      // Pass SSL options to auth module
+      this.auth.setSSLOptions(this.sslOptions);
+      
+      if (config.ssl.debugSSL) {
+        logger.debug("SSL configuration applied:", {
+          hasCaCerts: !!this.sslOptions.caCerts?.length,
+          hasClientCert: !!this.sslOptions.cert,
+          sslVerifyDisabled: !config.ssl.verifySSL,
+          jenkinsUrl: this.jenkinsUrl,
+        });
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error("SSL configuration failed:", errorMessage);
+      throw new Error(`SSL configuration failed: ${errorMessage}`);
     }
 
     // Fetch CSRF crumb for security
@@ -101,6 +129,13 @@ export class JenkinsClient {
           },
           signal: AbortSignal.timeout(this.timeout),
         };
+
+        // Add SSL options if available (Deno-specific)
+        // For disabled SSL verification, we don't add client options
+        // which allows Deno to use its default (more permissive) behavior
+        if (this.sslOptions && 'Deno' in globalThis && config.ssl.verifySSL) {
+          (requestOptions as RequestInit & { client?: unknown }).client = this.sslOptions;
+        }
 
         logger.debug(
           `Making Jenkins API request: ${requestOptions.method} ${url}`,

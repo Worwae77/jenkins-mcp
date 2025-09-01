@@ -27,11 +27,27 @@ export class JenkinsAuth {
   private crumb?: string;
   private crumbRequestField?: string;
   private cookies: Map<string, string> = new Map(); // Cookie jar for session management
+  private sslOptions: {
+    caCerts?: string[];
+    cert?: string;
+    key?: string;
+  } | null = null;
 
   constructor(authConfig?: AuthConfig) {
     this.username = authConfig?.username || config.jenkinsUsername;
     this.apiToken = authConfig?.apiToken || config.jenkinsApiToken;
     this.password = authConfig?.password || config.jenkinsPassword;
+  }
+
+  /**
+   * Set SSL options for HTTP requests
+   */
+  setSSLOptions(sslOptions: {
+    caCerts?: string[];
+    cert?: string;
+    key?: string;
+  } | null): void {
+    this.sslOptions = sslOptions;
   }
 
   /**
@@ -105,13 +121,21 @@ export class JenkinsAuth {
       const crumbUrl = `${jenkinsUrl}/crumbIssuer/api/json`;
       const authHeaders = this.getAuthHeaders();
 
-      const response = await fetch(crumbUrl, {
+      const requestOptions: RequestInit = {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           ...authHeaders,
         },
-      });
+      };
+
+      // Add SSL options if available (Deno-specific)
+      // For disabled SSL verification, we don't add client options
+      if (this.sslOptions && 'Deno' in globalThis && config.ssl.verifySSL) {
+        (requestOptions as RequestInit & { client?: unknown }).client = this.sslOptions;
+      }
+
+      const response = await fetch(crumbUrl, requestOptions);
 
       // Process cookies from response
       this.processCookies(response);
@@ -147,13 +171,21 @@ export class JenkinsAuth {
       const whoAmIUrl = `${jenkinsUrl}/whoAmI/api/json`;
       const authHeaders = this.getAuthHeaders();
 
-      const response = await fetch(whoAmIUrl, {
+      const requestOptions: RequestInit = {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           ...authHeaders,
         },
-      });
+      };
+
+      // Add SSL options if available (Deno-specific) 
+      // For disabled SSL verification, we don't add client options
+      if (this.sslOptions && 'Deno' in globalThis && config.ssl.verifySSL) {
+        (requestOptions as RequestInit & { client?: unknown }).client = this.sslOptions;
+      }
+
+      const response = await fetch(whoAmIUrl, requestOptions);
 
       // Process cookies from response
       this.processCookies(response);
@@ -260,6 +292,12 @@ export class JenkinsAuth {
         ...options.headers,
       },
     };
+
+    // Add SSL options if available (Deno-specific)
+    // For disabled SSL verification, we don't add client options
+    if (this.sslOptions && 'Deno' in globalThis && config.ssl.verifySSL) {
+      (requestOptions as RequestInit & { client?: unknown }).client = this.sslOptions;
+    }
 
     const response = await fetch(url, requestOptions);
 
