@@ -2,7 +2,7 @@
 
 A Model Context Protocol (MCP) server for Jenkins automation and management in enterprise environments.
 
-**Status:** ✅ Production Ready | **Version:** 2.0.0 | **Last Updated:** August 31, 2025  
+**Status:** ✅ Production Ready | **Version:** 2.1.0 | **Last Updated:** September 1, 2025  
 **Build System:** Makefile (Modern) + Shell Scripts (Legacy) | **CI/CD:** GitHub Actions ✅
 
 ## 🚀 Quick Start
