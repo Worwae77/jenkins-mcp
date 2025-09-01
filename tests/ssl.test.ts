@@ -138,6 +138,7 @@ Deno.test("SSL Config - Validation Success", () => {
   const validConfig: SSLConfig = {
     verifySSL: true,
     allowSelfSigned: false,
+    bypassAllSSL: false,
     debugSSL: false
     // Don't specify paths to avoid file validation
   };
@@ -150,6 +151,7 @@ Deno.test("SSL Fetch Options - SSL Verification Disabled", async () => {
   const config: SSLConfig = {
     verifySSL: false,
     allowSelfSigned: false,
+    bypassAllSSL: false,
     debugSSL: false
   };
   
@@ -171,6 +173,7 @@ Deno.test("SSL Fetch Options - CA Certificate Only", async () => {
     const config: SSLConfig = {
       verifySSL: true,
       allowSelfSigned: false,
+      bypassAllSSL: false,
       caCertPath: caCertPath,
       debugSSL: false
     };
@@ -200,6 +203,7 @@ Deno.test("SSL Fetch Options - Client Certificate Configuration", async () => {
     const config: SSLConfig = {
       verifySSL: true,
       allowSelfSigned: false,
+      bypassAllSSL: false,
       clientCertPath: clientCertPath,
       clientKeyPath: clientKeyPath,
       debugSSL: false
@@ -219,6 +223,7 @@ Deno.test("SSL Fetch Options - File Not Found Error", async () => {
   const config: SSLConfig = {
     verifySSL: true,
     allowSelfSigned: false,
+    bypassAllSSL: false,
     caCertPath: "/nonexistent/path/ca.pem",
     debugSSL: false
   };
@@ -250,6 +255,7 @@ Deno.test("SSL Fetch Options - Complete Configuration", async () => {
     const config: SSLConfig = {
       verifySSL: true,
       allowSelfSigned: false,
+      bypassAllSSL: false,
       caCertPath: caCertPath,
       clientCertPath: clientCertPath,
       clientKeyPath: clientKeyPath,

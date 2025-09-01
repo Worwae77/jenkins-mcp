@@ -150,7 +150,6 @@ Deno.test("SSL Config - Validation Success", () => {
 Deno.test("SSL Fetch Options - SSL Verification Disabled", async () => {
   const config: SSLConfig = {
     verifySSL: false,
-    bypassAllSSL: false,
     allowSelfSigned: false,
     debugSSL: false
   };
