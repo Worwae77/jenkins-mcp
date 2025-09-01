@@ -12,9 +12,14 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+  actions: read
+
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository_owner }}/jenkins-mcp
 
 jobs:
   # Quality and validation using Makefile
@@ -179,12 +184,22 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
+            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build Docker image using corporate-friendly approach
         run: |
           # Use CI-compatible Docker build target
           make docker-build-ci
           echo "CI Docker build completed successfully"
+          
+          # Verify the image was built
+          if docker images jenkins-mcp-server:latest | grep -q jenkins-mcp-server; then
+            echo "✅ Docker image jenkins-mcp-server:latest built successfully"
+            docker images jenkins-mcp-server:latest
+          else
+            echo "❌ Docker image jenkins-mcp-server:latest not found"
+            exit 1
+          fi
 
       - name: Tag and push Docker image
         if: github.event_name != 'pull_request'
@@ -194,7 +209,11 @@ jobs:
             if [ -n "$tag" ]; then
               echo "Tagging and pushing: $tag"
               docker tag jenkins-mcp-server:latest "$tag"
-              docker push "$tag"
+              if ! docker push "$tag"; then
+                echo "Failed to push $tag, retrying once..."
+                sleep 5
+                docker push "$tag" || echo "Failed to push $tag after retry"
+              fi
             fi
           done
 
