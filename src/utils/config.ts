@@ -2,6 +2,9 @@
  * Configuration management for Jenkins MCP Server
  */
 
+import type { SSLConfig } from "./ssl.ts";
+import { getSSLConfig } from "./ssl.ts";
+
 interface Config {
   // Server configuration
   serverName: string;
@@ -12,6 +15,9 @@ interface Config {
   jenkinsUsername?: string;
   jenkinsApiToken?: string;
   jenkinsPassword?: string;
+
+  // SSL/TLS configuration
+  ssl: SSLConfig;
 
   // Security configuration
   allowedDomains?: string[];
@@ -58,6 +64,9 @@ export const config: Config = {
   jenkinsUsername: Deno.env.get("JENKINS_USERNAME"),
   jenkinsApiToken: Deno.env.get("JENKINS_API_TOKEN"),
   jenkinsPassword: Deno.env.get("JENKINS_API_PASSWORD"),
+
+  // SSL/TLS configuration
+  ssl: getSSLConfig(),
 
   // Security configuration
   allowedDomains: parseArrayEnv("ALLOWED_DOMAINS"),

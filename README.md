@@ -442,6 +442,7 @@ This MCP server enables AI applications to interact with Jenkins instances secur
 | `jenkins_get_queue`         | View current build queue           | ✅ Complete |
 | `jenkins_cancel_queue_item` | Cancel queued builds               | ✅ Complete |
 | `jenkins_get_version`       | Get Jenkins server information     | ✅ Complete |
+| `jenkins_ssl_diagnostics`   | SSL/TLS configuration diagnostics  | ✅ Complete |
 
 ### Supported Job Types
 
@@ -597,7 +598,42 @@ JENKINS_API_TOKEN=your-api-token
 JENKINS_TIMEOUT=30000          # Request timeout (ms)
 JENKINS_RETRIES=3              # Request retry count
 LOG_LEVEL=info                 # Logging level (debug, info, warn, error)
+
+# SSL/TLS Configuration (for HTTPS Jenkins servers)
+JENKINS_SSL_VERIFY=true                    # Enable SSL verification (default: true)
+JENKINS_SSL_ALLOW_SELF_SIGNED=false       # Allow self-signed certs (default: false)
+JENKINS_CA_CERT_PATH=/path/to/ca.pem      # Custom CA certificate file
+JENKINS_SSL_DEBUG=false                    # Enable SSL debugging (default: false)
+
+# For mutual TLS (client certificates)
+JENKINS_CLIENT_CERT_PATH=/path/to/client.pem  # Client certificate file
+JENKINS_CLIENT_KEY_PATH=/path/to/client.key   # Client private key file
 ```
+
+### SSL/TLS Support 🔒
+
+Enterprise-ready SSL configuration for internal networks and organizational CA certificates:
+
+- **Custom CA Certificates**: Support for organizational certificate authorities
+- **Self-Signed Certificates**: Development environment support (use with caution)
+- **Mutual TLS**: Client certificate authentication support
+- **SSL Debugging**: Detailed logging for troubleshooting SSL issues
+- **Certificate Validation**: Comprehensive error messages and diagnostics
+
+**Common Enterprise Configuration:**
+```bash
+# Corporate Jenkins with organizational CA
+JENKINS_URL=https://jenkins.company.com
+JENKINS_CA_CERT_PATH=/etc/ssl/certs/company-ca.pem
+JENKINS_SSL_VERIFY=true
+
+# For problematic SSL setups (use with caution)
+JENKINS_URL=https://jenkins.company.com
+JENKINS_SSL_VERIFY=false
+JENKINS_SSL_DEBUG=true
+```
+
+📖 **For detailed SSL configuration guide, see:** [docs/SSL_CONFIGURATION.md](docs/SSL_CONFIGURATION.md)
 
 ### Security Best Practices
 

@@ -52,6 +52,8 @@ interface MCPResponse {
 import { JenkinsClient } from "./jenkins/client.ts";
 import { logger } from "./utils/logger.ts";
 import { validateJobName } from "./utils/validation.ts";
+import { getSSLTroubleshootingInfo } from "./utils/ssl.ts";
+import { config } from "./utils/config.ts";
 
 // Jenkins client instance
 const jenkinsClient = new JenkinsClient();
@@ -255,6 +257,15 @@ const TOOLS: Tool[] = [
         },
       },
       required: ["queueId"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "jenkins_ssl_diagnostics",
+    description: "Get SSL/TLS configuration and troubleshooting information",
+    inputSchema: {
+      type: "object",
+      properties: {},
       additionalProperties: false,
     },
   },
@@ -727,6 +738,29 @@ ${buildSteps}
             text: `Queue item ${queueId} cancelled: ${
               JSON.stringify(result, null, 2)
             }`,
+          },
+        ],
+      };
+    }
+
+    case "jenkins_ssl_diagnostics": {
+      const sslInfo = {
+        jenkinsUrl: config.jenkinsUrl,
+        sslConfig: config.ssl,
+        troubleshootingGuide: getSSLTroubleshootingInfo(),
+        currentEnvironment: {
+          JENKINS_SSL_VERIFY: Deno.env.get("JENKINS_SSL_VERIFY") || "true",
+          JENKINS_SSL_ALLOW_SELF_SIGNED: Deno.env.get("JENKINS_SSL_ALLOW_SELF_SIGNED") || "false",
+          JENKINS_CA_CERT_PATH: Deno.env.get("JENKINS_CA_CERT_PATH") || "not set",
+          JENKINS_SSL_DEBUG: Deno.env.get("JENKINS_SSL_DEBUG") || "false",
+        },
+      };
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `SSL/TLS Configuration and Diagnostics:\n\n${JSON.stringify(sslInfo, null, 2)}`,
           },
         ],
       };
