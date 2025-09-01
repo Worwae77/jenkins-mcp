@@ -102,6 +102,44 @@ EOF
 docker-compose up
 ```
 
+#### Corporate Environment Docker 🏢
+
+**For corporate environments with SSL restrictions or proxy issues:**
+
+If you encounter SSL certificate errors during Docker builds (common in corporate
+environments), use the corporate-friendly approach:
+
+```bash
+# 1. Clone the repository and build locally
+git clone https://github.com/Worwae77/jenkins-mcp.git
+cd jenkins-mcp
+
+# 2. Build Linux binary locally (avoids SSL downloads during Docker build)
+make build-linux
+
+# 3. Build corporate Docker image (uses pre-built binary)
+docker build -f Dockerfile.corporate -t jenkins-mcp-server:corporate .
+
+# 4. Run the corporate image
+docker run -e JENKINS_URL=https://your-jenkins.com \
+           -e JENKINS_USERNAME=your-username \
+           -e JENKINS_API_TOKEN=your-api-token \
+           -i jenkins-mcp-server:corporate
+
+# Alternative: Use environment file for easier management
+cp .env.example .env.local
+# Edit .env.local with your Jenkins details
+docker run --env-file .env.local -i jenkins-mcp-server:corporate
+```
+
+**Corporate Docker Benefits:**
+
+- ✅ No SSL certificate downloads during build
+- ✅ Works behind corporate proxies  
+- ✅ Pre-built binary approach avoids network dependencies
+- ✅ Platform-specific builds (AMD64 for enterprise compatibility)
+- ✅ Tested in restricted corporate environments
+
 ### Option 2: Standalone Binary 📦
 
 **No runtime dependencies - self-contained executable!**
