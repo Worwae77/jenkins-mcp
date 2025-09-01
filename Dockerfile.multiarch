@@ -1,0 +1,86 @@
+# Dockerfile.multiarch - Multi-architecture build for publishing
+FROM denoland/deno:alpine as builder
+
+# Set build arguments for target architecture
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+
+# Set environment variables to bypass SSL verification during build
+ENV DENO_TLS_CA_STORE=system
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+
+# Create app directory
+WORKDIR /app
+
+# Copy source files
+COPY src/ ./src/
+COPY deno.json ./
+
+# Determine target architecture for Deno compilation
+RUN echo "Building for platform: $TARGETPLATFORM on $BUILDPLATFORM"
+
+# Download dependencies with SSL bypass
+RUN deno cache --unsafely-ignore-certificate-errors src/simple-server.ts
+
+# Compile for target architecture with SSL bypass
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+      echo "Building for x86_64-unknown-linux-gnu" && \
+      deno compile \
+        --allow-net --allow-env --allow-read --allow-write \
+        --unsafely-ignore-certificate-errors \
+        --target x86_64-unknown-linux-gnu \
+        --output jenkins-mcp-server \
+        src/simple-server.ts; \
+    elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+      echo "Building for aarch64-unknown-linux-gnu" && \
+      deno compile \
+        --allow-net --allow-env --allow-read --allow-write \
+        --unsafely-ignore-certificate-errors \
+        --target aarch64-unknown-linux-gnu \
+        --output jenkins-mcp-server \
+        src/simple-server.ts; \
+    else \
+      echo "Building for x86_64-unknown-linux-gnu (default)" && \
+      deno compile \
+        --allow-net --allow-env --allow-read --allow-write \
+        --unsafely-ignore-certificate-errors \
+        --target x86_64-unknown-linux-gnu \
+        --output jenkins-mcp-server \
+        src/simple-server.ts; \
+    fi
+
+# Runtime stage - minimal image
+FROM debian:12-slim
+
+# Install CA certificates and basic tools
+RUN apt-get update && \
+    apt-get install -y ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy the compiled binary from builder stage
+COPY --from=builder /app/jenkins-mcp-server /usr/local/bin/jenkins-mcp-server
+
+# Make executable
+RUN chmod +x /usr/local/bin/jenkins-mcp-server
+
+# Create non-root user
+RUN groupadd -r jenkins && useradd -r -g jenkins jenkins
+RUN chown jenkins:jenkins /usr/local/bin/jenkins-mcp-server
+
+# Switch to non-root user
+USER jenkins
+
+# Expose port
+EXPOSE 8080
+
+# Set environment variables for SSL bypass
+ENV JENKINS_SSL_VERIFY=false
+ENV JENKINS_SSL_ALLOW_SELF_SIGNED=true
+ENV JENKINS_SSL_DEBUG=true
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | /usr/local/bin/jenkins-mcp-server > /dev/null || exit 1
+
+# Start the server
+CMD ["/usr/local/bin/jenkins-mcp-server"]

@@ -9,8 +9,8 @@ docs/
 .gitignore
 deno.lock
 
-# Build artifacts
-jenkins-mcp-server*
+# Build artifacts (exclude platform-specific binaries but allow main executable)
+jenkins-mcp-server-*
 *.exe
 
 # Logs and temporary files

@@ -5,6 +5,8 @@
 
 # Compiled binaries
 jenkins-mcp-server
+jenkins-mcp-server-*
+artifacts/jenkins-mcp-server-*
 /deployment/jenkins-mcp-server/jenkins-mcp-server
 
 # Build artifacts

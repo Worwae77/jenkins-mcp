@@ -1,8 +1,19 @@
-version: '3.8'
+veservices:
+  jenkins-mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.multiarch
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    image: ghcr.io/worwae77/jenkins-mcp-server:latest
+    container_name: jenkins-mcp-server'3.8'
 
 services:
   jenkins-mcp-server:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: jenkins-mcp-server:latest
     container_name: jenkins-mcp-server
     restart: unless-stopped
@@ -15,6 +26,9 @@ services:
       - JENKINS_TIMEOUT=${JENKINS_TIMEOUT:-30000}
       - JENKINS_RETRIES=${JENKINS_RETRIES:-3}
       - LOG_LEVEL=${LOG_LEVEL:-info}
+      - JENKINS_SSL_VERIFY=${JENKINS_SSL_VERIFY:-false}
+      - JENKINS_SSL_ALLOW_SELF_SIGNED=${JENKINS_SSL_ALLOW_SELF_SIGNED:-true}
+      - JENKINS_SSL_DEBUG=${JENKINS_SSL_DEBUG:-true}
     
     # Use stdin/stdout for MCP communication
     stdin_open: true

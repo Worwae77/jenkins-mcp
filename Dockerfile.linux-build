@@ -1,0 +1,57 @@
+# Dockerfile.linux-build - Build for Linux in Docker with SSL bypass
+FROM denoland/deno:alpine as builder
+
+# Set environment variables to bypass SSL verification during build
+ENV DENO_TLS_CA_STORE=system
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+
+# Create app directory
+WORKDIR /app
+
+# Copy source files
+COPY src/ ./src/
+COPY deno.json ./
+
+# Download dependencies and compile for Linux (without lock file to avoid cache issues)
+RUN deno cache --unsafely-ignore-certificate-errors src/simple-server.ts && \
+    deno compile \
+    --allow-net \
+    --allow-env \
+    --allow-read \
+    --allow-write \
+    --unsafely-ignore-certificate-errors \
+    --target x86_64-unknown-linux-gnu \
+    --output jenkins-mcp-server \
+    src/simple-server.ts
+
+# Runtime stage - minimal image
+FROM debian:12-slim
+
+# Install CA certificates
+RUN apt-get update && \
+    apt-get install -y ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy the compiled binary from builder stage
+COPY --from=builder /app/jenkins-mcp-server /usr/local/bin/jenkins-mcp-server
+
+# Make executable
+RUN chmod +x /usr/local/bin/jenkins-mcp-server
+
+# Create non-root user
+RUN groupadd -r jenkins && useradd -r -g jenkins jenkins
+RUN chown jenkins:jenkins /usr/local/bin/jenkins-mcp-server
+
+# Switch to non-root user
+USER jenkins
+
+# Expose port
+EXPOSE 8080
+
+# Set environment variables for SSL bypass
+ENV JENKINS_SSL_VERIFY=false
+ENV JENKINS_SSL_ALLOW_SELF_SIGNED=true
+ENV JENKINS_SSL_DEBUG=true
+
+# Start the server
+CMD ["/usr/local/bin/jenkins-mcp-server"]
