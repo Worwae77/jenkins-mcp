@@ -1,9 +1,14 @@
 /**
  * Version utilities for Jenkins MCP Server
+ *
+ * ✅ CI/CD APPROACH: Version is determined by git tags, not hardcoded values
+ * - In development: Shows "0.0.0-dev"
+ * - In releases: GitHub Actions injects actual version from git tag
+ * - Compiled binaries: Use embedded version from CI/CD build process
  */
 
-// Version is embedded at build time - update this when releasing new versions
-export const VERSION = "2.4.0";
+// Development fallback version - actual version comes from git tags in CI/CD
+export const VERSION = "0.0.0-dev";
 export const NAME = "jenkins-mcp-server";
 export const DESCRIPTION =
   "Model Context Protocol server for Jenkins automation and management";
