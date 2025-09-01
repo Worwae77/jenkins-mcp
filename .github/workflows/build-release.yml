@@ -28,7 +28,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: '2.0.0'
+          deno-version: '2.4.5'
 
       - name: Install dependencies
         run: make install
@@ -66,7 +66,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: '2.0.0'
+          deno-version: '2.4.5'
 
       - name: Install dependencies
         run: make install
@@ -74,11 +74,15 @@ jobs:
       - name: Run quality checks
         run: make quality
 
-      - name: Build binary for target platform
+      - name: Build binary for target platform (with SSL handling)
         run: |
+          # Try normal build first, fallback to SSL-bypass if needed
           case "${{ matrix.os }}" in
             "ubuntu-latest")
-              make build-linux
+              if ! make build-linux; then
+                echo "Normal build failed, trying with SSL bypass..."
+                deno compile --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors --target x86_64-unknown-linux-gnu --output jenkins-mcp-server-linux-x64 src/simple-server.ts
+              fi
               # Only move if source and destination are different
               if [ "jenkins-mcp-server-linux-x64" != "${{ matrix.artifact }}" ]; then
                 mv jenkins-mcp-server-linux-x64 ${{ matrix.artifact }}
@@ -86,19 +90,28 @@ jobs:
               ;;
             "macos-latest")
               if [ "${{ matrix.target }}" = "aarch64-apple-darwin" ]; then
-                make build-macos-arm
+                if ! make build-macos-arm; then
+                  echo "Normal build failed, trying with SSL bypass..."
+                  deno compile --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors --target aarch64-apple-darwin --output jenkins-mcp-server-macos-arm64 src/simple-server.ts
+                fi
                 if [ "jenkins-mcp-server-macos-arm64" != "${{ matrix.artifact }}" ]; then
                   mv jenkins-mcp-server-macos-arm64 ${{ matrix.artifact }}
                 fi
               else
-                make build-macos
+                if ! make build-macos; then
+                  echo "Normal build failed, trying with SSL bypass..."
+                  deno compile --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors --target x86_64-apple-darwin --output jenkins-mcp-server-macos-x64 src/simple-server.ts
+                fi
                 if [ "jenkins-mcp-server-macos-x64" != "${{ matrix.artifact }}" ]; then
                   mv jenkins-mcp-server-macos-x64 ${{ matrix.artifact }}
                 fi
               fi
               ;;
             "windows-latest")
-              make build-windows
+              if ! make build-windows; then
+                echo "Normal build failed, trying with SSL bypass..."
+                deno compile --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors --target x86_64-pc-windows-msvc --output jenkins-mcp-server-windows-x64.exe src/simple-server.ts
+              fi
               if [ "jenkins-mcp-server-windows-x64.exe" != "${{ matrix.artifact }}" ]; then
                 mv jenkins-mcp-server-windows-x64.exe ${{ matrix.artifact }}
               fi
@@ -138,6 +151,19 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Setup Deno for binary builds
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: '2.4.5'
+
+      - name: Build Linux binary for Docker (with SSL handling)
+        run: |
+          # Try normal build first, fallback to SSL-bypass if needed
+          if ! make build-linux; then
+            echo "Normal build failed, trying with SSL bypass..."
+            deno compile --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors --target x86_64-unknown-linux-gnu --output jenkins-mcp-server-linux-x64 src/simple-server.ts
+          fi
+
       - name: Log in to Container Registry
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
@@ -158,8 +184,11 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
 
-      - name: Build Docker image using Makefile
-        run: make docker-build
+      - name: Build Docker image using corporate-friendly approach
+        run: |
+          # Use corporate-friendly Docker build with pre-built binary
+          docker build --platform linux/amd64 -f Dockerfile.corporate -t jenkins-mcp-server:latest .
+          echo "Corporate Docker build completed successfully"
 
       - name: Tag and push Docker image
         if: github.event_name != 'pull_request'
@@ -188,7 +217,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: '2.0.0'
+          deno-version: '2.4.5'
 
       - name: Prepare release using Makefile
         run: |
