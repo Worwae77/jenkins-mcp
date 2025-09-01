@@ -37,12 +37,43 @@ make test
 
 ## 🛠️ Development Workflow
 
+### 0. Start with GitHub Issue
+
+**Always start by creating or claiming a GitHub issue:**
+
+```bash
+# 1. Go to https://github.com/Worwae77/jenkins-mcp/issues
+# 2. Check if issue already exists
+# 3. If not, create new issue using our templates:
+```
+
+**Issue Templates Available:**
+- **🐛 [Bug Report](.github/ISSUE_TEMPLATE/bug_report.md)** - Report bugs with reproduction steps
+- **✨ [Feature Request](.github/ISSUE_TEMPLATE/feature_request.md)** - Suggest new features or improvements  
+- **🔧 [SSL Implementation](.github/ISSUE_TEMPLATE/ssl-implementation.md)** - SSL/TLS related development
+- **🔒 [SSL Support](.github/ISSUE_TEMPLATE/ssl-support.md)** - SSL configuration help
+
+**Example Issue Creation:**
+```text
+Title: "Add jenkins_get_pipeline_logs tool"
+Labels: enhancement, tools
+Template: feature_request.md
+
+Description:
+- Problem: Users need to access Jenkins pipeline logs through MCP
+- Solution: New tool to fetch pipeline-specific logs
+- Use Case: AI assistants helping debug pipeline failures
+```
+
 ### 1. Create a Branch
 
 ```bash
-git checkout -b feature/amazing-feature
-# or
-git checkout -b fix/important-bug
+# Reference the issue number in branch name
+git checkout -b feature/issue-123-pipeline-logs-tool
+# or for bug fixes
+git checkout -b fix/issue-456-auth-timeout
+# or for docs
+git checkout -b docs/issue-789-ssl-setup-guide
 ```
 
 ### 2. Make Changes
@@ -70,17 +101,34 @@ make build
 ### 4. Commit and Push
 
 ```bash
+# Use conventional commit format with issue reference
 git add .
-git commit -m "feat: add amazing new feature"
-git push origin feature/amazing-feature
+git commit -m "feat: add jenkins_get_pipeline_logs tool (fixes #123)"
+git push origin feature/issue-123-pipeline-logs-tool
 ```
 
 ### 5. Create Pull Request
 
-- Use descriptive titles and detailed descriptions
-- Reference any related issues
-- Include screenshots for UI changes
-- Ensure all CI checks pass
+**PR Creation Checklist:**
+- ✅ **Title**: Use conventional commit format: `feat: add jenkins_get_pipeline_logs tool`
+- ✅ **Description**: Link to issue with `Closes #123` or `Fixes #123`
+- ✅ **Template**: Fill out our PR template completely
+- ✅ **CI Checks**: Ensure all GitHub Actions pass
+- ✅ **Review**: Request review from maintainers
+
+**PR Title Examples:**
+```text
+feat: add jenkins_get_pipeline_logs tool (closes #123)
+fix: resolve authentication timeout issue (fixes #456)
+docs: add SSL setup troubleshooting guide (closes #789)
+test: add comprehensive SSL module testing (closes #101)
+```
+
+**Linking Issues in PR:**
+- `Closes #123` - Automatically closes issue when PR is merged
+- `Fixes #456` - Same as closes, for bug fixes
+- `Addresses #789` - References issue but doesn't auto-close
+- `Part of #101` - For partial implementations
 
 ## 🎯 Contribution Types
 

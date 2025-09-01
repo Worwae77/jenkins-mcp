@@ -8,7 +8,10 @@
  */
 function logDebug(message: string, data?: unknown): void {
   if (Deno.env.get("JENKINS_SSL_DEBUG") === "true") {
-    console.log(`[SSL DEBUG] ${message}`, data ? JSON.stringify(data, null, 2) : "");
+    console.log(
+      `[SSL DEBUG] ${message}`,
+      data ? JSON.stringify(data, null, 2) : "",
+    );
   }
 }
 
@@ -24,17 +27,17 @@ export interface SSLConfig {
   // SSL verification settings
   verifySSL: boolean;
   allowSelfSigned: boolean;
-  
+
   // Custom CA certificates
   caCertPath?: string;
   caCertContent?: string;
-  
+
   // Client certificates for mutual TLS
   clientCertPath?: string;
   clientKeyPath?: string;
   clientCertContent?: string;
   clientKeyContent?: string;
-  
+
   // SSL debugging
   debugSSL: boolean;
 }
@@ -79,7 +82,9 @@ export function getSSLConfig(): SSLConfig {
 /**
  * Load CA certificate content from file or environment
  */
-export async function loadCACertificate(config: SSLConfig): Promise<string | undefined> {
+export async function loadCACertificate(
+  config: SSLConfig,
+): Promise<string | undefined> {
   try {
     if (config.caCertContent) {
       logDebug("Using CA certificate from environment variable");
@@ -115,7 +120,9 @@ export async function loadClientCertificate(config: SSLConfig): Promise<{
       logDebug("Using client certificate from environment variable");
       result.cert = config.clientCertContent;
     } else if (config.clientCertPath) {
-      logDebug(`Loading client certificate from file: ${config.clientCertPath}`);
+      logDebug(
+        `Loading client certificate from file: ${config.clientCertPath}`,
+      );
       result.cert = await Deno.readTextFile(config.clientCertPath);
     }
 
@@ -130,7 +137,9 @@ export async function loadClientCertificate(config: SSLConfig): Promise<{
 
     // Validate that both cert and key are provided if either is provided
     if ((result.cert && !result.key) || (!result.cert && result.key)) {
-      throw new Error("Both client certificate and key must be provided for mutual TLS");
+      throw new Error(
+        "Both client certificate and key must be provided for mutual TLS",
+      );
     }
 
     return result;
@@ -190,7 +199,9 @@ export async function createSSLFetchOptions(sslConfig: SSLConfig): Promise<{
 export function validateSSLConfig(config: SSLConfig): void {
   // Warn about insecure configurations
   if (!config.verifySSL) {
-    logWarn("⚠️  SSL verification is disabled. This is insecure for production use.");
+    logWarn(
+      "⚠️  SSL verification is disabled. This is insecure for production use.",
+    );
   }
 
   if (config.allowSelfSigned) {
@@ -212,8 +223,12 @@ export function validateSSLConfig(config: SSLConfig): void {
           throw new Error(`${file.name} path is not a file: ${file.path}`);
         }
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        throw new Error(`${file.name} file not found or not accessible: ${file.path} - ${errorMessage}`);
+        const errorMessage = error instanceof Error
+          ? error.message
+          : String(error);
+        throw new Error(
+          `${file.name} file not found or not accessible: ${file.path} - ${errorMessage}`,
+        );
       }
     }
   }

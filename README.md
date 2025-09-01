@@ -569,13 +569,39 @@ jenkins-mcp/
 
 ```bash
 # Using Makefile (recommended)
-make test          # Run test suite
+make test          # Run comprehensive test suite
 make check         # TypeScript compilation check  
 make fmt           # Format code
 make lint          # Lint code
 make quality       # Run all quality checks (fmt + lint + check + test)
 make build         # Build executable
+
+# Direct Deno commands
+deno test --allow-read --allow-env --allow-write --allow-net   # Full test suite
+deno test tests/basic.test.ts tests/validation.test.ts --allow-read --allow-env  # Basic tests only
 ```
+
+### Test Coverage
+
+✅ **Comprehensive Unit Tests**: 55+ tests across all modules
+
+- **`tests/basic.test.ts`** - Project structure and environment validation
+- **`tests/validation.test.ts`** - Input validation for Jenkins API calls
+- **`tests/ssl.test.ts`** - SSL/TLS configuration and certificate handling  
+- **`tests/jenkins-auth.test.ts`** - Authentication mechanisms (token/password)
+- **`tests/jenkins-client.test.ts`** - Jenkins API client functionality
+- **`tests/logger.test.ts`** - Logging system comprehensive testing
+
+**Test Environment Setup**:
+```bash
+# For full test suite, create .env.local with test values:
+JENKINS_URL=https://test-jenkins.example.com
+JENKINS_USERNAME=test-user
+JENKINS_API_TOKEN=test-token-placeholder
+JENKINS_SSL_VERIFY=false
+```
+
+See [`tests/TEST_COVERAGE_REPORT.md`](tests/TEST_COVERAGE_REPORT.md) for detailed coverage information.
 
 ## 🔐 Security & Configuration
 
@@ -717,27 +743,69 @@ Our CI/CD pipeline automatically builds and tests across multiple platforms:
 We welcome contributions from developers of all skill levels! Whether you're fixing bugs, adding features,
 improving documentation, or helping with testing, your contributions make this project better.
 
-### Quick Start for Contributors
+### GitHub Contribution Workflow
 
+**Step 1: Create GitHub Issue** 📝
+```bash
+# Before coding, open a GitHub issue to discuss your idea:
+# 🐛 Bug Report: Use bug_report.md template
+# ✨ Feature Request: Use feature_request.md template
+# 🔧 SSL/TLS Issues: Use ssl-support.md template
+```
+
+**Step 2: Create Development Branch** 🌿
 ```bash
 # 1. Fork and clone the repository
 git clone https://github.com/your-username/jenkins-mcp.git
 cd jenkins-mcp
 
-# 2. Setup development environment
+# 2. Create feature branch (reference the issue number)
+git checkout -b feature/issue-123-amazing-feature
+# or for bug fixes
+git checkout -b fix/issue-456-critical-bug
+```
+
+**Step 3: Build and Test** 🧪
+```bash
+# 1. Setup development environment
 make install
 
-# 3. Make your changes and test
-make quality    # Run all quality checks
-make test       # Run tests
+# 2. Make your changes, then run quality checks
+make quality    # TypeScript check + lint + format
+make test       # Run comprehensive test suite
+make build      # Verify build works
 
-# 4. Submit your contribution
+# 3. Test deployment methods
+make deploy-test  # Test Docker and binary deployments
+```
+
+**Step 4: Open Pull Request** 🚀
+```bash
+# 1. Commit with conventional commit format
 git add .
-git commit -m "feat: your amazing contribution"
-git push origin feature/amazing-feature
+git commit -m "feat: add amazing feature (fixes #123)"
+
+# 2. Push branch and create PR
+git push origin feature/issue-123-amazing-feature
+
+# 3. Open PR with:
+#    - Clear title: "feat: add amazing feature"
+#    - Description linking to issue: "Closes #123"
+#    - Completed checklist from PR template
 ```
 
 **📋 [Contributing Guide](CONTRIBUTING.md)** - Complete guide with setup, workflow, and coding standards
+
+**🚀 [Quick Contribution Guide](docs/QUICK_CONTRIBUTION_GUIDE.md)** - 4-step GitHub workflow for contributors
+
+### GitHub Issue Templates
+
+We provide templates to help you create better issues:
+
+- **🐛 [Bug Report](.github/ISSUE_TEMPLATE/bug_report.md)** - Report bugs with reproduction steps
+- **✨ [Feature Request](.github/ISSUE_TEMPLATE/feature_request.md)** - Suggest new features or improvements
+- **🔧 [SSL Implementation](.github/ISSUE_TEMPLATE/ssl-implementation.md)** - SSL/TLS related development
+- **🔒 [SSL Support](.github/ISSUE_TEMPLATE/ssl-support.md)** - SSL configuration help
 
 ### What We're Looking For
 

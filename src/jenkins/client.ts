@@ -60,10 +60,10 @@ export class JenkinsClient {
     try {
       validateSSLConfig(config.ssl);
       this.sslOptions = await createSSLFetchOptions(config.ssl);
-      
+
       // Pass SSL options to auth module
       this.auth.setSSLOptions(this.sslOptions);
-      
+
       if (config.ssl.debugSSL) {
         logger.debug("SSL configuration applied:", {
           hasCaCerts: !!this.sslOptions.caCerts?.length,
@@ -73,7 +73,9 @@ export class JenkinsClient {
         });
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : String(error);
       logger.error("SSL configuration failed:", errorMessage);
       throw new Error(`SSL configuration failed: ${errorMessage}`);
     }
@@ -133,8 +135,9 @@ export class JenkinsClient {
         // Add SSL options if available (Deno-specific)
         // For disabled SSL verification, we don't add client options
         // which allows Deno to use its default (more permissive) behavior
-        if (this.sslOptions && 'Deno' in globalThis && config.ssl.verifySSL) {
-          (requestOptions as RequestInit & { client?: unknown }).client = this.sslOptions;
+        if (this.sslOptions && "Deno" in globalThis && config.ssl.verifySSL) {
+          (requestOptions as RequestInit & { client?: unknown }).client =
+            this.sslOptions;
         }
 
         logger.debug(
