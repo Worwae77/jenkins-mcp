@@ -136,8 +136,13 @@ export class JenkinsAuth {
       };
 
       // Add SSL options if available (Deno-specific)
-      // For disabled SSL verification, we don't add client options
-      if (this.sslOptions && "Deno" in globalThis && config.ssl.verifySSL) {
+      // Skip SSL configuration if bypassAllSSL is enabled
+      if (
+        this.sslOptions && 
+        "Deno" in globalThis && 
+        config.ssl.verifySSL && 
+        !config.ssl.bypassAllSSL
+      ) {
         (requestOptions as RequestInit & { client?: unknown }).client =
           this.sslOptions;
       }
@@ -187,8 +192,13 @@ export class JenkinsAuth {
       };
 
       // Add SSL options if available (Deno-specific)
-      // For disabled SSL verification, we don't add client options
-      if (this.sslOptions && "Deno" in globalThis && config.ssl.verifySSL) {
+      // Skip SSL configuration if bypassAllSSL is enabled
+      if (
+        this.sslOptions && 
+        "Deno" in globalThis && 
+        config.ssl.verifySSL && 
+        !config.ssl.bypassAllSSL
+      ) {
         (requestOptions as RequestInit & { client?: unknown }).client =
           this.sslOptions;
       }

@@ -27,6 +27,9 @@ export interface SSLConfig {
   // SSL verification settings
   verifySSL: boolean;
   allowSelfSigned: boolean;
+  
+  // ⚠️ INSECURE - Corporate environments only
+  bypassAllSSL: boolean;
 
   // Custom CA certificates
   caCertPath?: string;
@@ -43,11 +46,12 @@ export interface SSLConfig {
 }
 
 /**
- * Default SSL configuration
+ * Default SSL configuration - SECURE by default
  */
 export const defaultSSLConfig: SSLConfig = {
   verifySSL: true,
   allowSelfSigned: false,
+  bypassAllSSL: false,
   debugSSL: false,
 };
 
@@ -55,6 +59,16 @@ export const defaultSSLConfig: SSLConfig = {
  * Get SSL configuration from environment variables
  */
 export function getSSLConfig(): SSLConfig {
+  // Check for insecure SSL bypass - warn user
+  const bypassAllSSL = ["true", "1", "yes", "on"].includes(
+    Deno.env.get("JENKINS_SSL_BYPASS_ALL")?.toLowerCase() || "",
+  );
+  
+  if (bypassAllSSL) {
+    logWarn("⚠️  SSL BYPASS ENABLED - ALL SSL VALIDATION DISABLED ⚠️");
+    logWarn("This is INSECURE and should only be used in corporate environments!");
+  }
+
   const config: SSLConfig = {
     verifySSL: !["false", "0", "no", "off"].includes(
       Deno.env.get("JENKINS_SSL_VERIFY")?.toLowerCase() || "",
@@ -62,6 +76,7 @@ export function getSSLConfig(): SSLConfig {
     allowSelfSigned: ["true", "1", "yes", "on"].includes(
       Deno.env.get("JENKINS_SSL_ALLOW_SELF_SIGNED")?.toLowerCase() || "",
     ),
+    bypassAllSSL,
     caCertPath: Deno.env.get("JENKINS_CA_CERT_PATH"),
     caCertContent: Deno.env.get("JENKINS_CA_CERT_CONTENT"),
     clientCertPath: Deno.env.get("JENKINS_CLIENT_CERT_PATH"),
@@ -77,6 +92,7 @@ export function getSSLConfig(): SSLConfig {
     logDebug("SSL Configuration:", {
       verifySSL: config.verifySSL,
       allowSelfSigned: config.allowSelfSigned,
+      bypassAllSSL: config.bypassAllSSL,
       hasCaCert: !!(config.caCertPath || config.caCertContent),
       hasClientCert: !!(config.clientCertPath || config.clientCertContent),
     });

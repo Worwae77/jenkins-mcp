@@ -625,11 +625,14 @@ JENKINS_TIMEOUT=30000          # Request timeout (ms)
 JENKINS_RETRIES=3              # Request retry count
 LOG_LEVEL=info                 # Logging level (debug, info, warn, error)
 
-# SSL/TLS Configuration (for HTTPS Jenkins servers)
-JENKINS_SSL_VERIFY=true                    # Enable SSL verification (default: true)
-JENKINS_SSL_ALLOW_SELF_SIGNED=false       # Allow self-signed certs (default: false)
+# SSL/TLS Configuration (SECURE by default)
+JENKINS_SSL_VERIFY=true                    # SSL verification enabled (SECURE - default)
+JENKINS_SSL_ALLOW_SELF_SIGNED=false       # Disallow self-signed certs (SECURE - default)
 JENKINS_CA_CERT_PATH=/path/to/ca.pem      # Custom CA certificate file
 JENKINS_SSL_DEBUG=false                    # Enable SSL debugging (default: false)
+
+# ⚠️ CORPORATE ENVIRONMENTS ONLY - INSECURE SSL BYPASS ⚠️
+# JENKINS_SSL_BYPASS_ALL=true             # Bypass ALL SSL validation (VERY INSECURE)
 
 # For mutual TLS (client certificates)
 JENKINS_CLIENT_CERT_PATH=/path/to/client.pem  # Client certificate file
@@ -638,25 +641,56 @@ JENKINS_CLIENT_KEY_PATH=/path/to/client.key   # Client private key file
 
 ### SSL/TLS Support 🔒
 
+**Security-First Approach**: SSL certificate validation is **enabled by default** for maximum security.
+
 Enterprise-ready SSL configuration for internal networks and organizational CA certificates:
 
-- **Custom CA Certificates**: Support for organizational certificate authorities
-- **Self-Signed Certificates**: Development environment support (use with caution)
-- **Mutual TLS**: Client certificate authentication support
-- **SSL Debugging**: Detailed logging for troubleshooting SSL issues
-- **Certificate Validation**: Comprehensive error messages and diagnostics
+- **🟢 Secure by Default**: SSL verification enabled - no configuration needed
+- **🟡 Custom CA Certificates**: Support for organizational certificate authorities  
+- **🟡 Self-Signed Certificates**: Development environment support (use with caution)
+- **🔴 SSL Bypass**: Corporate emergency option (INSECURE - use only when necessary)
+- **🔧 Mutual TLS**: Client certificate authentication support
+- **🔍 SSL Debugging**: Detailed logging for troubleshooting SSL issues
 
-**Common Enterprise Configuration:**
+**Production Configuration (Secure - Default):**
 ```bash
-# Corporate Jenkins with organizational CA
+# Secure configuration - no special setup needed
+JENKINS_URL=https://jenkins.company.com
+JENKINS_SSL_VERIFY=true          # Default - SSL verification enabled
+```
+
+**Corporate CA Configuration:**
+```bash
+# Corporate Jenkins with organizational CA certificate
 JENKINS_URL=https://jenkins.company.com
 JENKINS_CA_CERT_PATH=/etc/ssl/certs/company-ca.pem
-JENKINS_SSL_VERIFY=true
+JENKINS_SSL_VERIFY=true          # Still secure with custom CA
+```
 
-# For problematic SSL setups (use with caution)
+**⚠️ Corporate Emergency Configuration (INSECURE):**
+```bash
+# Only for corporate networks with SSL proxy issues
 JENKINS_URL=https://jenkins.company.com
-JENKINS_SSL_VERIFY=false
-JENKINS_SSL_DEBUG=true
+JENKINS_SSL_BYPASS_ALL=true     # ⚠️ DISABLES ALL SSL SECURITY
+JENKINS_SSL_DEBUG=true          # Help diagnose SSL issues
+```
+
+🔗 **For complete SSL security guide:** [SSL_SECURITY_GUIDE.md](SSL_SECURITY_GUIDE.md)
+
+### Build Commands
+
+**Secure Builds (Default - Recommended):**
+```bash
+make start          # Secure SSL verification enabled
+make build          # Build secure binary
+make test           # Test with SSL verification
+```
+
+**Corporate Emergency Builds (INSECURE):**
+```bash
+make start-corporate    # ⚠️ Start with SSL bypass (INSECURE)
+make build-corporate    # ⚠️ Build with SSL bypass (INSECURE) 
+make test-corporate     # ⚠️ Test with SSL bypass (INSECURE)
 ```
 
 📖 **For detailed SSL configuration guide, see:** [docs/SSL_CONFIGURATION.md](docs/SSL_CONFIGURATION.md)

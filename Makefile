@@ -59,6 +59,11 @@ dev: check-env ## Start development server with auto-reload
 	@export $$(cat $(ENV_FILE) | grep -v '^#' | grep -v '^$$' | xargs); \
 	deno run --allow-net --allow-env --allow-read --allow-write src/simple-server.ts
 
+dev-corporate: check-env ## Start development server with corporate SSL bypass (INSECURE)
+	@echo "$(YELLOW)Starting development server with SSL bypass (CORPORATE ENVIRONMENTS ONLY)...$(NC)"
+	@export $$(cat $(ENV_FILE) | grep -v '^#' | grep -v '^$$' | xargs); \
+	deno run --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors src/simple-server.ts
+
 start: check-env ## Start the MCP server
 	@echo "$(GREEN)Starting Jenkins MCP Server...$(NC)"
 	@export $$(cat $(ENV_FILE) | grep -v '^#' | grep -v '^$$' | xargs); \
@@ -67,6 +72,16 @@ start: check-env ## Start the MCP server
 	else \
 		echo "$(YELLOW)Binary not found, running from source...$(NC)"; \
 		deno run --allow-net --allow-env --allow-read --allow-write src/simple-server.ts; \
+	fi
+
+start-corporate: check-env ## Start MCP server with corporate SSL bypass (INSECURE)
+	@echo "$(YELLOW)Starting Jenkins MCP Server with SSL bypass (CORPORATE ENVIRONMENTS ONLY)...$(NC)"
+	@export $$(cat $(ENV_FILE) | grep -v '^#' | grep -v '^$$' | xargs); \
+	if [ -f "./$(BINARY_NAME)-corporate" ]; then \
+		exec ./$(BINARY_NAME)-corporate; \
+	else \
+		echo "$(YELLOW)Corporate binary not found, running from source with SSL bypass...$(NC)"; \
+		deno run --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors src/simple-server.ts; \
 	fi
 
 ## Code Quality
@@ -89,6 +104,13 @@ test: ## Run tests
 	 export JENKINS_API_TOKEN="test" && \
 	 deno test --allow-net --allow-env --allow-read --allow-write tests/
 
+test-corporate: ## Run tests with corporate SSL bypass (INSECURE)
+	@echo "$(YELLOW)Running tests with SSL bypass (CORPORATE ENVIRONMENTS ONLY)...$(NC)"
+	@export JENKINS_URL="http://localhost:8080" && \
+	 export JENKINS_USERNAME="test" && \
+	 export JENKINS_API_TOKEN="test" && \
+	 deno test --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors tests/
+
 quality: check fmt lint test ## Run all code quality checks
 
 ## Building
@@ -96,6 +118,11 @@ build: clean ## Build standalone executable for current platform
 	@echo "$(GREEN)Building standalone executable...$(NC)"
 	@deno compile --allow-net --allow-env --allow-read --allow-write --output $(BINARY_NAME) src/simple-server.ts
 	@echo "$(GREEN)Built: $(BINARY_NAME)$(NC)"
+
+build-corporate: clean ## Build standalone executable with corporate SSL bypass (INSECURE)
+	@echo "$(YELLOW)Building standalone executable with SSL bypass (CORPORATE ENVIRONMENTS ONLY)...$(NC)"
+	@deno compile --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors --output $(BINARY_NAME)-corporate src/simple-server.ts
+	@echo "$(GREEN)Built: $(BINARY_NAME)-corporate$(NC)"
 
 build-linux: ## Build Linux x64 executable
 	@echo "$(GREEN)Building Linux x64 executable...$(NC)"
@@ -118,6 +145,14 @@ build-windows: ## Build Windows x64 executable
 	@echo "$(GREEN)Built: $(WINDOWS_BINARY)$(NC)"
 
 build-all: build-linux build-macos build-macos-arm build-windows ## Build executables for all platforms
+
+build-all-corporate: ## Build executables for all platforms with corporate SSL bypass (INSECURE)
+	@echo "$(YELLOW)Building all executables with SSL bypass (CORPORATE ENVIRONMENTS ONLY)...$(NC)"
+	@deno compile --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors --target x86_64-unknown-linux-gnu --output $(LINUX_BINARY)-corporate src/simple-server.ts
+	@deno compile --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors --target x86_64-apple-darwin --output $(MACOS_BINARY)-corporate src/simple-server.ts
+	@deno compile --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors --target aarch64-apple-darwin --output $(MACOS_ARM_BINARY)-corporate src/simple-server.ts
+	@deno compile --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors --target x86_64-pc-windows-msvc --output $(WINDOWS_BINARY:%.exe=%-corporate.exe) src/simple-server.ts
+	@echo "$(GREEN)Built all corporate binaries$(NC)"
 	@echo "$(GREEN)All platform binaries built successfully!$(NC)"
 	@ls -la jenkins-mcp-server-*
 
