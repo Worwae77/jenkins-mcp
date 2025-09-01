@@ -52,7 +52,8 @@ Deno.test("JenkinsAuth - Token Authentication", () => {
 Deno.test("JenkinsAuth - Password Authentication", () => {
   const authConfig: AuthConfig = {
     username: "testuser",
-    password: "test-password"
+    password: "test-password",
+    apiToken: undefined // Explicitly set to undefined to avoid fallback
   };
 
   const auth = new JenkinsAuth(authConfig);
@@ -87,7 +88,9 @@ Deno.test("JenkinsAuth - Token Priority Over Password", () => {
 
 Deno.test("JenkinsAuth - No Credentials", () => {
   const authConfig: AuthConfig = {
-    username: "testuser"
+    username: "testuser",
+    apiToken: undefined,
+    password: undefined
   };
 
   const auth = new JenkinsAuth(authConfig);

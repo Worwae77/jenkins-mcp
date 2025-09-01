@@ -34,9 +34,13 @@ export class JenkinsAuth {
   } | null = null;
 
   constructor(authConfig?: AuthConfig) {
-    this.username = authConfig?.username || config.jenkinsUsername;
-    this.apiToken = authConfig?.apiToken || config.jenkinsApiToken;
-    this.password = authConfig?.password || config.jenkinsPassword;
+    this.username = authConfig?.username ?? config.jenkinsUsername;
+    this.apiToken = authConfig && 'apiToken' in authConfig 
+      ? authConfig.apiToken 
+      : config.jenkinsApiToken;
+    this.password = authConfig && 'password' in authConfig 
+      ? authConfig.password 
+      : config.jenkinsPassword;
   }
 
   /**
