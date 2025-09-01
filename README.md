@@ -697,11 +697,21 @@ make test-corporate     # ⚠️ Test with SSL bypass (INSECURE)
 
 ### Security Best Practices
 
-1. **Use API Tokens**: Always prefer API tokens over passwords
-2. **Environment Variables**: Store credentials in environment variables, not config files
-3. **Network Security**: Ensure secure communication with Jenkins (HTTPS)
-4. **Access Control**: Verify Jenkins user has appropriate permissions
-5. **Regular Rotation**: Rotate API tokens regularly
+⚠️ **CRITICAL: Never commit real credentials to Git!**
+
+1. **Use Local Configuration Files**: Copy templates to `.local` files
+   ```bash
+   cp .env.example .env.local                    # For environment variables
+   cp .vscode/mcp.json .vscode/mcp.json.local   # For VS Code MCP config
+   ```
+
+2. **Use API Tokens**: Always prefer API tokens over passwords
+3. **Environment Variables**: Store credentials in environment variables, not config files
+4. **Network Security**: Ensure secure communication with Jenkins (HTTPS)
+5. **Access Control**: Verify Jenkins user has appropriate permissions
+6. **Regular Rotation**: Rotate API tokens regularly
+
+📖 **Complete Security Guide**: [SECURITY_CONFIGURATION.md](SECURITY_CONFIGURATION.md)
 
 ## 📚 Documentation
 
