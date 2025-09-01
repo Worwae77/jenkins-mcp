@@ -83,6 +83,7 @@ jobs:
 
       - name: Extract version from git tag
         id: version
+        shell: bash
         run: |
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/v}
@@ -94,6 +95,7 @@ jobs:
           fi
 
       - name: Inject version into source code
+        shell: bash
         run: |
           VERSION="${{ steps.version.outputs.VERSION }}"
           echo "Injecting version: ${VERSION}"
