@@ -22,6 +22,15 @@
 ✅ **SSL/TLS Support**: Enterprise-grade SSL configuration for corporate environments
 ✅ **Security**: Secure credential management and validation
 ✅ **Testing**: Comprehensive unit test coverage for all components
+✅ **Project Cleanup**: Complete removal of sensitive credentials and unnecessary build artifacts (Sep 1, 2025)
+
+## Security Cleanup Status (Sept 1, 2025)
+
+🔒 **Credential Security**: All sensitive data completely removed from project
+🧹 **Project Cleaned**: Removed 74MB+ of unnecessary build artifacts and executables
+📦 **Size Optimized**: Project reduced from ~74MB to 1.8MB (97% reduction)
+🛡️ **Zero Exposure**: No Jenkins credentials, API tokens, or sensitive URLs in any files
+✅ **Repository Ready**: Clean codebase prepared for secure repository recreation
 
 ## Key Files & Structure
 
@@ -50,9 +59,27 @@ jenkins-mcp/
 ├── experimental/                # 🧪 v1.1 experimental features
 ├── ansible/                     # 🏗️ Infrastructure automation
 ├── .vscode/mcp.json            # VS Code MCP configuration (examples)
-├── .vscode/mcp.json.local      # Actual credentials (gitignored)
-└── .env.local                  # Environment configuration
+└── .env.example                # Environment variable template (safe examples only)
 ```
+
+## Cleaned Files & Security Notes
+
+### Removed Files (Security Cleanup - Sept 1, 2025)
+The following files were permanently removed to ensure zero credential exposure:
+- ❌ `.env.local` - Contained real Jenkins credentials
+- ❌ `.envrc` - Environment variables with sensitive data
+- ❌ `start-option-1.sh` - Script with hardcoded credentials
+- ❌ `.vscode/mcp.json.local` - VS Code config with real credentials
+- ❌ `jenkins-mcp-server` - 74MB compiled executable (rebuild with `deno task build`)
+- ❌ `artifacts/` - Build artifacts directory
+- ❌ Multiple Dockerfiles - Kept only main `Dockerfile`
+- ❌ Various release and build documentation files
+
+### Current Safe Files
+- ✅ `.env.example` - Contains only placeholder values
+- ✅ `.vscode/mcp.json` - Contains only example configurations
+- ✅ All source files in `src/` - No hardcoded credentials
+- ✅ All documentation - Uses placeholder examples only
 
 ## Development Guidelines
 
@@ -196,15 +223,23 @@ test SSL diagnostics tool       # Validate configuration handling
 ### Development Workflow
 ```bash
 # Setup
-cp .env.example .env.local  # Configure environment
+cp .env.example .env.local  # Configure environment with your credentials
 deno task check             # Verify TypeScript
-deno task build             # Build executable
+deno task build             # Build executable (will recreate jenkins-mcp-server)
 
 # Testing
-./start-server.sh           # Start with env variables
 deno test                   # Run unit tests
 deno task fmt && deno task lint  # Code quality
+
+# Note: start-server.sh was removed during cleanup - use deno task start instead
 ```
+
+### Project Cleanup Guidelines (Added Sept 1, 2025)
+1. **Never commit real credentials**: Always use .env.local (gitignored) for real credentials
+2. **Keep examples safe**: Only placeholder values in committed files
+3. **Regular cleanup**: Remove build artifacts and temporary files periodically
+4. **Size awareness**: Monitor project size (should stay under 2MB without executables)
+5. **Security validation**: Run `grep -r "your-actual-credentials" .` to check for leaks
 
 ### Unit Testing Guidelines
 1. **Test Structure**: Each module in `src/` should have corresponding tests in `tests/`
@@ -244,4 +279,12 @@ This project enables AI assistants to interact with Jenkins through:
 - **v1.1 (Experimental)**: `experimental/` with advanced features
 - **Infrastructure**: `ansible/` for enterprise deployment
 
-When working on this project, prioritize the production v1.0 codebase in `src/` and refer to README.md as the primary documentation source.
+## Project Maintenance Notes
+
+When working on this project:
+1. **Prioritize production v1.0 codebase** in `src/` directory
+2. **Refer to README.md** as the primary documentation source
+3. **Use only placeholder credentials** in committed files
+4. **Keep project size optimized** - current clean size: 1.8MB
+5. **Rebuild executables as needed** with `deno task build`
+6. **Maintain security standards** - no real credentials in repository ever
