@@ -56,15 +56,21 @@ export const defaultSSLConfig: SSLConfig = {
  */
 export function getSSLConfig(): SSLConfig {
   const config: SSLConfig = {
-    verifySSL: Deno.env.get("JENKINS_SSL_VERIFY") !== "false",
-    allowSelfSigned: Deno.env.get("JENKINS_SSL_ALLOW_SELF_SIGNED") === "true",
+    verifySSL: !["false", "0", "no", "off"].includes(
+      Deno.env.get("JENKINS_SSL_VERIFY")?.toLowerCase() || ""
+    ),
+    allowSelfSigned: ["true", "1", "yes", "on"].includes(
+      Deno.env.get("JENKINS_SSL_ALLOW_SELF_SIGNED")?.toLowerCase() || ""
+    ),
     caCertPath: Deno.env.get("JENKINS_CA_CERT_PATH"),
     caCertContent: Deno.env.get("JENKINS_CA_CERT_CONTENT"),
     clientCertPath: Deno.env.get("JENKINS_CLIENT_CERT_PATH"),
     clientKeyPath: Deno.env.get("JENKINS_CLIENT_KEY_PATH"),
     clientCertContent: Deno.env.get("JENKINS_CLIENT_CERT_CONTENT"),
     clientKeyContent: Deno.env.get("JENKINS_CLIENT_KEY_CONTENT"),
-    debugSSL: Deno.env.get("JENKINS_SSL_DEBUG") === "true",
+    debugSSL: ["true", "1", "yes", "on"].includes(
+      Deno.env.get("JENKINS_SSL_DEBUG")?.toLowerCase() || ""
+    ),
   };
 
   if (config.debugSSL) {
