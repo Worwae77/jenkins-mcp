@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . .
 
 # Cache dependencies and build standalone executable
-RUN deno cache src/simple-server.ts && deno task build
+RUN deno cache src/simple-server.ts && deno task build:corporate
 
 # Production stage - minimal runtime
 FROM debian:12-slim AS runtime

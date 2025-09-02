@@ -34,13 +34,16 @@ export class JenkinsAuth {
   } | null = null;
 
   constructor(authConfig?: AuthConfig) {
-    this.username = authConfig?.username ?? config.jenkinsUsername;
-    this.apiToken = authConfig && "apiToken" in authConfig
-      ? authConfig.apiToken
-      : config.jenkinsApiToken;
-    this.password = authConfig && "password" in authConfig
-      ? authConfig.password
-      : config.jenkinsPassword;
+    // Read environment variables directly if no config provided
+    this.username = authConfig?.username ?? 
+                   config.jenkinsUsername ?? 
+                   Deno.env.get("JENKINS_USERNAME");
+    this.apiToken = authConfig?.apiToken ?? 
+                   config.jenkinsApiToken ?? 
+                   Deno.env.get("JENKINS_API_TOKEN");
+    this.password = authConfig?.password ?? 
+                   config.jenkinsPassword ?? 
+                   Deno.env.get("JENKINS_API_PASSWORD");
   }
 
   /**

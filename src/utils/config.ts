@@ -32,16 +32,16 @@ interface Config {
 /**
  * Get environment variable with fallback
  */
-function getEnv(key: string, fallback?: string): string {
-  const value = Deno.env.get(key);
-  if (value === undefined) {
-    if (fallback !== undefined) {
-      return fallback;
-    }
-    throw new Error(`Environment variable ${key} is required`);
-  }
-  return value;
-}
+// function getEnv(key: string, fallback?: string): string {
+//   const value = Deno.env.get(key);
+//   if (value === undefined) {
+//     if (fallback !== undefined) {
+//       return fallback;
+//     }
+//     throw new Error(`Environment variable ${key} is required`);
+//   }
+//   return value;
+// }
 
 /**
  * Parse comma-separated string to array
@@ -53,15 +53,26 @@ function parseArrayEnv(key: string, fallback: string[] = []): string[] {
 }
 
 /**
+ * Get environment variable with fallback, returns undefined if not found and no fallback
+ */
+function getEnvOptional(key: string, fallback?: string): string | undefined {
+  const value = Deno.env.get(key);
+  if (value === undefined) {
+    return fallback;
+  }
+  return value;
+}
+
+/**
  * Application configuration
  */
 export const config: Config = {
   // Server configuration
-  serverName: getEnv("MCP_SERVER_NAME", "jenkins-mcp-server"),
-  serverVersion: getEnv("MCP_SERVER_VERSION", "2.3.1"),
+  serverName: getEnvOptional("MCP_SERVER_NAME", "jenkins-mcp-server")!,
+  serverVersion: getEnvOptional("MCP_SERVER_VERSION", "2.3.1")!,
 
-  // Jenkins configuration
-  jenkinsUrl: getEnv("JENKINS_URL"),
+  // Jenkins configuration - these can be empty at module load time
+  jenkinsUrl: getEnvOptional("JENKINS_URL", "")!,
   jenkinsUsername: Deno.env.get("JENKINS_USERNAME"),
   jenkinsApiToken: Deno.env.get("JENKINS_API_TOKEN"),
   jenkinsPassword: Deno.env.get("JENKINS_API_PASSWORD"),
@@ -71,11 +82,11 @@ export const config: Config = {
 
   // Security configuration
   allowedDomains: parseArrayEnv("ALLOWED_DOMAINS"),
-  rateLimitPerMinute: parseInt(getEnv("RATE_LIMIT_PER_MINUTE", "60")),
+  rateLimitPerMinute: parseInt(getEnvOptional("RATE_LIMIT_PER_MINUTE", "60")!),
 
   // Logging configuration
-  logLevel: getEnv("LOG_LEVEL", "INFO"),
-  enableAuditLog: getEnv("ENABLE_AUDIT_LOG", "true") === "true",
+  logLevel: getEnvOptional("LOG_LEVEL", "INFO")!,
+  enableAuditLog: getEnvOptional("ENABLE_AUDIT_LOG", "true") === "true",
 };
 
 /**

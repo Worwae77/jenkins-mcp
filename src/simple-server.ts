@@ -93,8 +93,15 @@ async function displayHelp(): Promise<void> {
   console.log("  JENKINS_URL=http://localhost:8080 jenkins-mcp-server");
 }
 
-// Jenkins client instance
-const jenkinsClient = new JenkinsClient();
+// Jenkins client instance (lazy-loaded)
+let jenkinsClient: JenkinsClient | null = null;
+
+function getJenkinsClient(): JenkinsClient {
+  if (!jenkinsClient) {
+    jenkinsClient = new JenkinsClient();
+  }
+  return jenkinsClient;
+}
 
 // Define tools
 const TOOLS: Tool[] = [
@@ -488,8 +495,8 @@ async function handleTool(
 ): Promise<unknown> {
   switch (name) {
     case "jenkins_list_jobs": {
-      await jenkinsClient.initialize();
-      const jobs = await jenkinsClient.listJobs();
+      await getJenkinsClient().initialize();
+      const jobs = await getJenkinsClient().listJobs();
       return {
         content: [
           {
@@ -504,8 +511,8 @@ async function handleTool(
       const { jobName } = args as { jobName: string };
       validateJobName(jobName);
 
-      await jenkinsClient.initialize();
-      const job = await jenkinsClient.getJob(jobName);
+      await getJenkinsClient().initialize();
+      const job = await getJenkinsClient().getJob(jobName);
 
       return {
         content: [
@@ -524,8 +531,8 @@ async function handleTool(
       };
       validateJobName(jobName);
 
-      await jenkinsClient.initialize();
-      const result = await jenkinsClient.triggerBuild({
+      await getJenkinsClient().initialize();
+      const result = await getJenkinsClient().triggerBuild({
         jobName,
         parameters,
       });
@@ -549,8 +556,8 @@ async function handleTool(
     }
 
     case "jenkins_get_version": {
-      await jenkinsClient.initialize();
-      const version = await jenkinsClient.getVersion();
+      await getJenkinsClient().initialize();
+      const version = await getJenkinsClient().getVersion();
 
       return {
         content: [
@@ -574,8 +581,8 @@ async function handleTool(
         };
       validateJobName(jobName);
 
-      await jenkinsClient.initialize();
-      const logs = await jenkinsClient.getBuildLogs({
+      await getJenkinsClient().initialize();
+      const logs = await getJenkinsClient().getBuildLogs({
         jobName,
         buildNumber: buildNumber.toString(),
         start,
@@ -602,7 +609,7 @@ async function handleTool(
       };
       validateJobName(jobName);
 
-      await jenkinsClient.initialize();
+      await getJenkinsClient().initialize();
 
       // Generate XML configuration
       let configXml: string;
@@ -661,7 +668,7 @@ ${buildSteps}
 </flow-definition>`;
       }
 
-      const result = await jenkinsClient.createJob(jobName, configXml);
+      const result = await getJenkinsClient().createJob(jobName, configXml);
 
       return {
         content: [
@@ -682,8 +689,8 @@ ${buildSteps}
       };
       validateJobName(jobName);
 
-      await jenkinsClient.initialize();
-      const build = await jenkinsClient.getBuild(jobName, buildNumber);
+      await getJenkinsClient().initialize();
+      const build = await getJenkinsClient().getBuild(jobName, buildNumber);
 
       return {
         content: [
@@ -702,8 +709,8 @@ ${buildSteps}
       };
       validateJobName(jobName);
 
-      await jenkinsClient.initialize();
-      const result = await jenkinsClient.stopBuild(jobName, buildNumber);
+      await getJenkinsClient().initialize();
+      const result = await getJenkinsClient().stopBuild(jobName, buildNumber);
 
       return {
         content: [
@@ -718,8 +725,8 @@ ${buildSteps}
     }
 
     case "jenkins_list_nodes": {
-      await jenkinsClient.initialize();
-      const nodes = await jenkinsClient.listNodes();
+      await getJenkinsClient().initialize();
+      const nodes = await getJenkinsClient().listNodes();
 
       return {
         content: [
@@ -734,8 +741,8 @@ ${buildSteps}
     case "jenkins_get_node_status": {
       const { nodeName } = args as { nodeName?: string };
 
-      await jenkinsClient.initialize();
-      const nodeStatus = await jenkinsClient.getNodeStatus(
+      await getJenkinsClient().initialize();
+      const nodeStatus = await getJenkinsClient().getNodeStatus(
         nodeName || undefined,
       );
 
@@ -750,8 +757,8 @@ ${buildSteps}
     }
 
     case "jenkins_get_queue": {
-      await jenkinsClient.initialize();
-      const queue = await jenkinsClient.getBuildQueue();
+      await getJenkinsClient().initialize();
+      const queue = await getJenkinsClient().getBuildQueue();
 
       return {
         content: [
@@ -766,8 +773,8 @@ ${buildSteps}
     case "jenkins_cancel_queue_item": {
       const { queueId } = args as { queueId: number };
 
-      await jenkinsClient.initialize();
-      const result = await jenkinsClient.cancelQueueItem(queueId);
+      await getJenkinsClient().initialize();
+      const result = await getJenkinsClient().cancelQueueItem(queueId);
 
       return {
         content: [
@@ -837,7 +844,7 @@ ${buildSteps}
         ansibleVariables?: Record<string, any>;
       };
 
-      await jenkinsClient.initialize();
+      await getJenkinsClient().initialize();
 
       // Build request object
       const restartRequest: any = {
@@ -874,7 +881,7 @@ ${buildSteps}
         }
       }
 
-      const result = await jenkinsClient.restartAgent(restartRequest);
+      const result = await getJenkinsClient().restartAgent(restartRequest);
 
       return {
         content: [
@@ -894,8 +901,8 @@ ${buildSteps}
         includeLogs?: boolean;
       };
 
-      await jenkinsClient.initialize();
-      const result = await jenkinsClient.getAgentDiagnostics({
+      await getJenkinsClient().initialize();
+      const result = await getJenkinsClient().getAgentDiagnostics({
         nodeName,
         includeSystemInfo: includeSystemInfo ?? true,
         includeLogs: includeLogs ?? true,
@@ -918,8 +925,8 @@ ${buildSteps}
         maxRetries?: number;
       };
 
-      await jenkinsClient.initialize();
-      const result = await jenkinsClient.recoverAgent({
+      await getJenkinsClient().initialize();
+      const result = await getJenkinsClient().recoverAgent({
         nodeName,
         strategy: recoveryStrategy || "auto",
         maxRetries: maxRetries || 3,
@@ -946,8 +953,8 @@ ${buildSteps}
 async function handleResource(uri: string): Promise<unknown> {
   switch (uri) {
     case "jenkins://jobs": {
-      await jenkinsClient.initialize();
-      const jobs = await jenkinsClient.listJobs();
+      await getJenkinsClient().initialize();
+      const jobs = await getJenkinsClient().listJobs();
       return {
         contents: [
           {
@@ -976,22 +983,23 @@ async function handlePrompt(
         buildNumber?: string | number;
       };
 
-      await jenkinsClient.initialize();
+      await getJenkinsClient().initialize();
 
-      // Get build info
-      const targetBuildNumber = buildNumber || "lastBuild";
-      const build = await jenkinsClient.getBuild(jobName, targetBuildNumber);
+      try {
+        // Get build info
+        const targetBuildNumber = buildNumber || "lastBuild";
+        const build = await getJenkinsClient().getBuild(jobName, targetBuildNumber);
 
-      // Get build logs (first 2000 chars)
-      const logsResponse = await jenkinsClient.getBuildLogs({
-        jobName,
-        buildNumber: targetBuildNumber,
-        start: 0,
-        progressiveLog: false,
-      });
+        // Get build logs (first 2000 chars)
+        const logsResponse = await getJenkinsClient().getBuildLogs({
+          jobName,
+          buildNumber: targetBuildNumber,
+          start: 0,
+          progressiveLog: false,
+        });
 
-      const prompt =
-        `You are a Jenkins troubleshooting expert. Please analyze this failed build and provide actionable recommendations.
+        const prompt =
+          `You are a Jenkins troubleshooting expert. Please analyze this failed build and provide actionable recommendations.
 
 Build Information:
 - Job: ${jobName}
@@ -1001,9 +1009,9 @@ Build Information:
 - Started: ${new Date(build.timestamp).toISOString()}
 
 Build Console Logs (last 2000 characters):
-\`\`\`
+${'```'}
 ${logsResponse.text.slice(-2000)}
-\`\`\`
+${'```'}
 
 Please provide:
 1. Root cause analysis of the failure
@@ -1011,18 +1019,123 @@ Please provide:
 3. Preventive measures for the future
 4. Related Jenkins best practices`;
 
-      return {
-        description: "Jenkins build troubleshooting analysis",
-        messages: [
-          {
-            role: "user",
-            content: {
-              type: "text",
-              text: prompt,
+        return {
+          description: "Jenkins build troubleshooting analysis",
+          messages: [
+            {
+              role: "user",
+              content: {
+                type: "text",
+                text: prompt,
+              },
             },
-          },
-        ],
-      };
+          ],
+        };
+      } catch (error) {
+        // Handle errors gracefully when job or build doesn't exist
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        
+        let helpfulPrompt = "";
+        
+        if (errorMessage.includes("404") || errorMessage.includes("Not Found")) {
+          // Try to get available jobs to provide helpful suggestions
+          try {
+            const jobs = await getJenkinsClient().listJobs();
+            const jobNames = jobs.map((job) => job.name).slice(0, 10); // Limit to first 10 jobs
+            
+            helpfulPrompt = `**Jenkins Troubleshooting: Job or Build Not Found**
+
+The specified job "${jobName}" ${buildNumber ? `or build #${buildNumber}` : ""} could not be found on the Jenkins server.
+
+**Possible Issues:**
+1. **Job name is incorrect** - Please check the spelling and case sensitivity
+2. **Job doesn't exist** - The job may have been deleted or never created
+3. **Build number doesn't exist** - The specified build may not have run yet
+4. **Permission issues** - You may not have access to view this job
+
+**Available Jobs on this Jenkins server:**
+${jobNames.length > 0 
+  ? jobNames.map(name => `- ${name}`).join('\n')
+  : "No jobs found or you may not have permission to view them"
+}
+
+**Next Steps:**
+1. Verify the job name from the Jenkins dashboard
+2. Check if the job exists and you have permission to access it
+3. If troubleshooting a build, ensure the build number exists
+4. Contact your Jenkins administrator if you believe you should have access
+
+**Alternative Troubleshooting Options:**
+- Use the Jenkins web interface to browse available jobs
+- Check Jenkins logs for permission or configuration issues
+- Review recent build history for similar jobs
+- Consider using general Jenkins best practices for pipeline debugging`;
+          } catch (_listError) {
+            // If we can't even list jobs, provide basic guidance
+            helpfulPrompt = `**Jenkins Troubleshooting: Job or Build Not Found**
+
+The specified job "${jobName}" ${buildNumber ? `or build #${buildNumber}` : ""} could not be found on the Jenkins server.
+
+**Possible Issues:**
+1. **Job name is incorrect** - Please check the spelling and case sensitivity
+2. **Job doesn't exist** - The job may have been deleted or never created  
+3. **Build number doesn't exist** - The specified build may not have run yet
+4. **Permission issues** - You may not have access to view this job
+
+**Next Steps:**
+1. Verify the job name from the Jenkins dashboard
+2. Check if the job exists and you have permission to access it
+3. If troubleshooting a build, ensure the build number exists
+4. Contact your Jenkins administrator if access issues persist
+
+**General Jenkins Troubleshooting Tips:**
+- Check Jenkins system logs for errors
+- Verify pipeline syntax if using declarative/scripted pipelines
+- Review build console output for error patterns
+- Check workspace and artifact permissions
+- Validate environment variables and credentials`;
+          }
+        } else {
+          // Handle other types of errors
+          helpfulPrompt = `**Jenkins Troubleshooting: Error Accessing Build Information**
+
+An error occurred while trying to access build information for job "${jobName}":
+
+**Error Details:**
+${errorMessage}
+
+**Possible Solutions:**
+1. **Check Jenkins connectivity** - Ensure the Jenkins server is accessible
+2. **Verify authentication** - Confirm your API token/credentials are valid
+3. **Review permissions** - Ensure you have access to the specified job
+4. **Check Jenkins server status** - The server may be experiencing issues
+
+**General Troubleshooting Steps:**
+1. Try accessing the job through the Jenkins web interface
+2. Check Jenkins server logs for system-level issues
+3. Verify network connectivity to the Jenkins server
+4. Contact your Jenkins administrator for assistance
+
+**Alternative Approaches:**
+- Use Jenkins CLI tools for direct access
+- Check recent build history patterns
+- Review Jenkins system configuration
+- Monitor Jenkins server health metrics`;
+        }
+
+        return {
+          description: "Jenkins troubleshooting guidance - Job/Build not found",
+          messages: [
+            {
+              role: "user", 
+              content: {
+                type: "text",
+                text: helpfulPrompt,
+              },
+            },
+          ],
+        };
+      }
     }
 
     case "jenkins_pipeline_best_practices": {
