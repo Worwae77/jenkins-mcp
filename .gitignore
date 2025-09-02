@@ -3,6 +3,9 @@
 .env
 .envrc
 
+# Debug files - temporary testing scripts
+debug-*.ts
+
 # Compiled binaries
 jenkins-mcp-server
 jenkins-mcp-server-*

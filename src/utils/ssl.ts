@@ -189,8 +189,12 @@ export async function createSSLFetchOptions(sslConfig: SSLConfig): Promise<{
   } = {};
 
   // Handle SSL verification - for Deno, we need to use different approach
-  if (!sslConfig.verifySSL || sslConfig.allowSelfSigned) {
-    logDebug("SSL verification disabled or self-signed certificates allowed");
+  if (
+    !sslConfig.verifySSL || sslConfig.allowSelfSigned || sslConfig.bypassAllSSL
+  ) {
+    logDebug(
+      "SSL verification disabled, self-signed certificates allowed, or SSL bypass enabled",
+    );
     // Note: Deno's fetch doesn't support rejectUnauthorized directly
     // We'll handle this at the fetch level by not adding any caCerts
     // and relying on environment variable DENO_TLS_CA_STORE=system if needed
