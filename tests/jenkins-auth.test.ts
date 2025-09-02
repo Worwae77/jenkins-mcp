@@ -50,22 +50,34 @@ Deno.test("JenkinsAuth - Token Authentication", () => {
 });
 
 Deno.test("JenkinsAuth - Password Authentication", () => {
-  const authConfig: AuthConfig = {
-    username: "testuser",
-    password: "test-password",
-    apiToken: undefined // Explicitly set to undefined to avoid fallback
-  };
+  // Clear environment variables to avoid interference
+  const originalApiToken = Deno.env.get("JENKINS_API_TOKEN");
+  const originalToken = Deno.env.get("JENKINS_TOKEN");
+  Deno.env.delete("JENKINS_API_TOKEN");
+  Deno.env.delete("JENKINS_TOKEN");
 
-  const auth = new JenkinsAuth(authConfig);
-  const headers = auth.getAuthHeaders();
+  try {
+    const authConfig: AuthConfig = {
+      username: "testuser",
+      password: "test-password",
+      apiToken: undefined // Explicitly set to undefined to avoid fallback
+    };
 
-  assertExists(headers.Authorization, "Should have Authorization header");
-  assertEquals(headers.Authorization?.startsWith("Basic "), true, "Should be Basic auth");
-  
-  // Decode and verify the basic auth
-  const encodedCreds = headers.Authorization?.split(" ")[1];
-  const decodedCreds = atob(encodedCreds!);
-  assertEquals(decodedCreds, "testuser:test-password", "Should encode username:password correctly");
+    const auth = new JenkinsAuth(authConfig);
+    const headers = auth.getAuthHeaders();
+
+    assertExists(headers.Authorization, "Should have Authorization header");
+    assertEquals(headers.Authorization?.startsWith("Basic "), true, "Should be Basic auth");
+    
+    // Decode and verify the basic auth
+    const encodedCreds = headers.Authorization?.split(" ")[1];
+    const decodedCreds = atob(encodedCreds!);
+    assertEquals(decodedCreds, "testuser:test-password", "Should encode username:password correctly");
+  } finally {
+    // Restore environment variables
+    if (originalApiToken) Deno.env.set("JENKINS_API_TOKEN", originalApiToken);
+    if (originalToken) Deno.env.set("JENKINS_TOKEN", originalToken);
+  }
 });
 
 Deno.test("JenkinsAuth - Token Priority Over Password", () => {
@@ -87,16 +99,35 @@ Deno.test("JenkinsAuth - Token Priority Over Password", () => {
 });
 
 Deno.test("JenkinsAuth - No Credentials", () => {
-  const authConfig: AuthConfig = {
-    username: "testuser",
-    apiToken: undefined,
-    password: undefined
-  };
+  // Clear environment variables to avoid interference
+  const originalApiToken = Deno.env.get("JENKINS_API_TOKEN");
+  const originalToken = Deno.env.get("JENKINS_TOKEN");
+  const originalUsername = Deno.env.get("JENKINS_USERNAME");
+  const originalPassword = Deno.env.get("JENKINS_API_PASSWORD");
+  
+  Deno.env.delete("JENKINS_API_TOKEN");
+  Deno.env.delete("JENKINS_TOKEN");
+  Deno.env.delete("JENKINS_USERNAME");
+  Deno.env.delete("JENKINS_API_PASSWORD");
 
-  const auth = new JenkinsAuth(authConfig);
-  const headers = auth.getAuthHeaders();
+  try {
+    const authConfig: AuthConfig = {
+      username: "testuser",
+      apiToken: undefined,
+      password: undefined
+    };
 
-  assertEquals(headers.Authorization, undefined, "Should not have Authorization header without credentials");
+    const auth = new JenkinsAuth(authConfig);
+    const headers = auth.getAuthHeaders();
+
+    assertEquals(headers.Authorization, undefined, "Should not have Authorization header without credentials");
+  } finally {
+    // Restore environment variables
+    if (originalApiToken) Deno.env.set("JENKINS_API_TOKEN", originalApiToken);
+    if (originalToken) Deno.env.set("JENKINS_TOKEN", originalToken);
+    if (originalUsername) Deno.env.set("JENKINS_USERNAME", originalUsername);
+    if (originalPassword) Deno.env.set("JENKINS_API_PASSWORD", originalPassword);
+  }
 });
 
 Deno.test("JenkinsAuth - SSL Options", () => {
