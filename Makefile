@@ -136,15 +136,19 @@ lint: ## Lint code
 test: ## Run tests
 	@echo "$(GREEN)Running tests...$(NC)"
 	@export JENKINS_URL="http://localhost:8080" && \
-	 export JENKINS_USERNAME="test" && \
-	 export JENKINS_API_TOKEN="test" && \
+	 export JENKINS_USERNAME="" && \
+	 export JENKINS_API_TOKEN="" && \
+	 export JENKINS_TOKEN="" && \
+	 export JENKINS_API_PASSWORD="" && \
 	 deno test --allow-net --allow-env --allow-read --allow-write tests/
 
 test-corporate: ## Run tests with corporate SSL bypass (INSECURE)
 	@echo "$(YELLOW)Running tests with SSL bypass (CORPORATE ENVIRONMENTS ONLY)...$(NC)"
 	@export JENKINS_URL="http://localhost:8080" && \
-	 export JENKINS_USERNAME="test" && \
-	 export JENKINS_API_TOKEN="test" && \
+	 export JENKINS_USERNAME="" && \
+	 export JENKINS_API_TOKEN="" && \
+	 export JENKINS_TOKEN="" && \
+	 export JENKINS_API_PASSWORD="" && \
 	 deno test --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors tests/
 
 quality: check fmt lint test ## Run all code quality checks
