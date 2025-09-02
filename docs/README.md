@@ -1,12 +1,14 @@
 # Jenkins MCP Server Documentation
 
-Welcome to the comprehensive documentation for the Jenkins MCP Server! This directory contains all the technical
-documentation, guides, and references you need to understand, deploy, and contribute to this project.
+Welcome to the comprehensive documentation for the Jenkins MCP Server! This
+directory contains all the technical documentation, guides, and references you
+need to understand, deploy, and contribute to this project.
 
 ## 📚 Documentation Overview
 
-The Jenkins MCP Server enables AI assistants to interact with Jenkins CI/CD systems through the Model Context
-Protocol (MCP). This documentation covers everything from basic setup to enterprise deployment and advanced development.
+The Jenkins MCP Server enables AI assistants to interact with Jenkins CI/CD
+systems through the Model Context Protocol (MCP). This documentation covers
+everything from basic setup to enterprise deployment and advanced development.
 
 ## 🚀 Quick Navigation
 
@@ -20,27 +22,37 @@ Protocol (MCP). This documentation covers everything from basic setup to enterpr
 
 #### 📖 **Requirements & Planning**
 
-- **[Software Requirements Specification (SRS)](SRS.md)** - Complete requirements documentation
-- **[Project Completion Summary](PROJECT_COMPLETION_SUMMARY.md)** - Current implementation status
+- **[Software Requirements Specification (SRS)](SRS.md)** - Complete
+  requirements documentation
+- **[Project Completion Summary](PROJECT_COMPLETION_SUMMARY.md)** - Current
+  implementation status
 - **[Project History](PROJECT_HISTORY.md)** - Evolution and development timeline
 
 #### 🏗️ **Technical Architecture**
 
-- **[System Architecture](architecture/SYSTEM_ARCHITECTURE.md)** - Detailed technical design
+- **[System Architecture](architecture/SYSTEM_ARCHITECTURE.md)** - Detailed
+  technical design
 - **[API Reference](api/API_REFERENCE.md)** - Complete MCP tools documentation
 
 #### 🚀 **Deployment & Operations**
 
-- **[Deployment Guide](guides/DEPLOYMENT.md)** - Production deployment procedures
-- **[Troubleshooting Guide](guides/TROUBLESHOOTING.md)** - Problem diagnosis and solutions
-- **[CI/CD Integration](CI_CD_INTEGRATION.md)** - Multi-platform build automation
+- **[Deployment Guide](guides/DEPLOYMENT.md)** - Production deployment
+  procedures
+- **[Troubleshooting Guide](guides/TROUBLESHOOTING.md)** - Problem diagnosis and
+  solutions
+- **[CI/CD Integration](CI_CD_INTEGRATION.md)** - Multi-platform build
+  automation
 
 #### 🤝 **Development & Contribution**
 
-- **[Quick Contribution Guide](QUICK_CONTRIBUTION_GUIDE.md)** - 4-step GitHub workflow
-- **[Detailed Contributing Guide](CONTRIBUTING.md)** - Comprehensive development workflow
-- **[Experimental Roadmap](F005_EXPERIMENTAL_ROADMAP.md)** - v1.1 feature planning
-- **[Repositioning Summary](F005_REPOSITIONING_SUMMARY.md)** - Strategic decisions
+- **[Quick Contribution Guide](QUICK_CONTRIBUTION_GUIDE.md)** - 4-step GitHub
+  workflow
+- **[Detailed Contributing Guide](CONTRIBUTING.md)** - Comprehensive development
+  workflow
+- **[Experimental Roadmap](F005_EXPERIMENTAL_ROADMAP.md)** - v1.1 feature
+  planning
+- **[Repositioning Summary](F005_REPOSITIONING_SUMMARY.md)** - Strategic
+  decisions
 
 ## 🎯 Documentation Structure
 
@@ -88,7 +100,8 @@ docs/
 **Enterprise adoption and planning:**
 
 1. [Software Requirements](SRS.md) - Complete specifications
-2. [System Architecture](architecture/SYSTEM_ARCHITECTURE.md) - Security and design
+2. [System Architecture](architecture/SYSTEM_ARCHITECTURE.md) - Security and
+   design
 3. [Deployment Guide](guides/DEPLOYMENT.md) - Enterprise deployment
 4. [Experimental Roadmap](F005_EXPERIMENTAL_ROADMAP.md) - Future features
 
@@ -98,14 +111,15 @@ docs/
 
 1. [API Reference](api/API_REFERENCE.md) - MCP tools and usage
 2. [Main README](../README.md) - AI interaction examples
-3. [System Architecture](architecture/SYSTEM_ARCHITECTURE.md) - Integration patterns
+3. [System Architecture](architecture/SYSTEM_ARCHITECTURE.md) - Integration
+   patterns
 
 ## 📊 Project Status
 
 ### ✅ **v1.0 - Production Ready**
 
 - **Status:** Complete and operational
-- **Features:** 12 core MCP tools for Jenkins automation
+- **Features:** 13 core MCP tools for Jenkins automation
 - **Documentation:** Comprehensive (4,400+ lines)
 - **Testing:** Fully tested with CI/CD integration
 
@@ -119,20 +133,22 @@ docs/
 ### 🔮 **v2.0 - Advanced Automation (Future)**
 
 - **Focus:** AI-driven operations and multi-cluster management
-- **Features:** Advanced analytics, intelligent automation, enhanced AI integration
+- **Features:** Advanced analytics, intelligent automation, enhanced AI
+  integration
 
 ## 🛠️ Available MCP Tools
 
-The Jenkins MCP Server provides 12 production-ready tools for Jenkins automation:
+The Jenkins MCP Server provides 13 production-ready tools for Jenkins
+automation:
 
-| Category | Tools | Description |
-|----------|-------|-------------|
-| **Job Management** | `jenkins_list_jobs`, `jenkins_get_job`, `jenkins_create_job` | Job discovery and management |
-| **Build Operations** | `jenkins_trigger_job`, `jenkins_get_build`, `jenkins_stop_build` | Build control and monitoring |
-| **Logging & Debugging** | `jenkins_get_build_logs` | Console output and debugging |
-| **Infrastructure** | `jenkins_list_nodes`, `jenkins_get_node_status` | Agent and node management |
-| **Queue Management** | `jenkins_get_queue`, `jenkins_cancel_queue_item` | Build queue operations |
-| **System Info** | `jenkins_get_version` | Server information and status |
+| Category                | Tools                                                              | Description                            |
+| ----------------------- | ------------------------------------------------------------------ | -------------------------------------- |
+| **Job Management**      | `jenkins_list_jobs`, `jenkins_get_job`, `jenkins_create_job`       | Job discovery and management           |
+| **Build Operations**    | `jenkins_trigger_build`, `jenkins_get_build`, `jenkins_stop_build` | Build control and monitoring           |
+| **Logging & Debugging** | `jenkins_get_build_logs`                                           | Console output and debugging           |
+| **Infrastructure**      | `jenkins_list_nodes`, `jenkins_get_node_status`                    | Agent and node management              |
+| **Queue Management**    | `jenkins_get_queue`, `jenkins_cancel_queue_item`                   | Build queue operations                 |
+| **System Info**         | `jenkins_get_version`, `jenkins_ssl_diagnostics`                   | Server information and SSL diagnostics |
 
 For complete tool documentation, see [API Reference](api/API_REFERENCE.md).
 
@@ -205,8 +221,10 @@ We welcome contributions to improve our documentation:
 
 ### 📚 **Additional Resources**
 
-- **[Model Context Protocol](https://github.com/modelcontextprotocol)** - MCP specification and tools
-- **[Jenkins API](https://www.jenkins.io/doc/book/using/remote-access-api/)** - Jenkins REST API documentation
+- **[Model Context Protocol](https://github.com/modelcontextprotocol)** - MCP
+  specification and tools
+- **[Jenkins API](https://www.jenkins.io/doc/book/using/remote-access-api/)** -
+  Jenkins REST API documentation
 - **[Deno Manual](https://deno.land/manual)** - Deno runtime documentation
 
 ---
@@ -227,4 +245,5 @@ This documentation has been designed to be:
 
 **Welcome to the Jenkins MCP Server community!** 🚀
 
-*For questions about this documentation, please open an issue or start a discussion on GitHub.*
+_For questions about this documentation, please open an issue or start a
+discussion on GitHub._

@@ -14,6 +14,13 @@
 1. [Overview](#overview)
 2. [Authentication](#authentication)
 3. [Tools Reference](#tools-reference)
+   - [Job Management](#job-management)
+   - [Build Operations](#build-operations)
+   - [Node Management](#node-management)
+   - [Queue Management](#queue-management)
+   - [System Information](#system-information)
+   - [Experimental Features](#experimental-features-v11)
+   - [Prompts Reference](#prompts-reference)
 4. [Resources Reference](#resources-reference)
 5. [Error Handling](#error-handling)
 6. [Examples](#examples)
@@ -26,6 +33,14 @@ The Jenkins MCP Server provides a comprehensive interface for managing Jenkins
 CI/CD operations through the Model Context Protocol. All communication follows
 the JSON-RPC 2.0 specification.
 
+**Available Tools:** 13 production-ready tools covering job management, build
+operations, node management, queue operations, and system information.
+
+**Experimental Features:** 3 additional agent management tools (available in
+v1.1+)
+
+**Prompts:** 2 AI-assisted troubleshooting and guidance prompts
+
 ### Protocol Information
 
 - **Protocol Version:** MCP 1.0
@@ -37,7 +52,7 @@ the JSON-RPC 2.0 specification.
 
 The server connects to Jenkins instances using the configured base URL:
 
-```
+```text
 JENKINS_URL/api/json
 ```
 
@@ -222,7 +237,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"jenkins_cr
 
 ### Build Operations
 
-#### jenkins_trigger_job
+#### jenkins_trigger_build
 
 Trigger a build for a specific Jenkins job.
 
@@ -242,11 +257,6 @@ Trigger a build for a specific Jenkins job.
       "additionalProperties": {
         "type": ["string", "number", "boolean"]
       }
-    },
-    "delay": {
-      "type": "number",
-      "description": "Delay in seconds before starting the build",
-      "minimum": 0
     }
   },
   "required": ["jobName"]
@@ -257,7 +267,6 @@ Trigger a build for a specific Jenkins job.
 
 - `jobName` (string, required): Name of the job to trigger
 - `parameters` (object, optional): Build parameters
-- `delay` (number, optional): Delay before starting build
 
 **Response:**
 
@@ -269,6 +278,12 @@ Trigger a build for a specific Jenkins job.
   }],
   "isError": false
 }
+```
+
+**Example:**
+
+```bash
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"jenkins_trigger_build","arguments":{"jobName":"my-job","parameters":{"BRANCH":"main","ENVIRONMENT":"production"}}}}' | jenkins-mcp-server
 ```
 
 ---
@@ -566,6 +581,102 @@ Get Jenkins server version and system information.
 
 ---
 
+#### jenkins_ssl_diagnostics
+
+Perform SSL/TLS diagnostics for Jenkins connection troubleshooting.
+
+**Input Schema:**
+
+```json
+{}
+```
+
+**Response:**
+
+```json
+{
+  "content": [{
+    "type": "text",
+    "text": "SSL Diagnostics Results:\n\n✅ SSL Configuration: Valid\n🔍 Certificate Details: {...}"
+  }],
+  "isError": false
+}
+```
+
+**Example:**
+
+```bash
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"jenkins_ssl_diagnostics","arguments":{}}}' | jenkins-mcp-server
+```
+
+---
+
+### Experimental Features (v1.1+)
+
+The following tools are currently experimental and may not be available in all
+deployments:
+
+#### jenkins_restart_agent (Experimental)
+
+Restart a Jenkins agent/node with advanced configuration options.
+
+**Status:** Available in implementation but disabled in production tools list
+**Availability:** Planned for v1.1 release
+
+#### jenkins_agent_diagnostics (Experimental)
+
+Perform comprehensive diagnostics on Jenkins agents.
+
+**Status:** Available in implementation but disabled in production tools list
+**Availability:** Planned for v1.1 release
+
+#### jenkins_auto_recovery (Experimental)
+
+Perform automated recovery operations for Jenkins issues.
+
+**Status:** Available in implementation but disabled in production tools list
+**Availability:** Planned for v1.1 release
+
+---
+
+## Prompts Reference
+
+The server also provides AI-assisted prompts for complex troubleshooting
+scenarios:
+
+### jenkins_troubleshoot_build_failure
+
+AI-assisted build failure analysis and recommendations.
+
+**Arguments:**
+
+- `jobName` (required): Name of the failed Jenkins job
+- `buildNumber` (optional): Specific build number to analyze
+
+**Usage:**
+
+```bash
+echo '{"jsonrpc":"2.0","id":1,"method":"prompts/get","params":{"name":"jenkins_troubleshoot_build_failure","arguments":{"jobName":"my-job","buildNumber":"42"}}}' | jenkins-mcp-server
+```
+
+### jenkins_pipeline_best_practices
+
+AI-generated Jenkins pipeline best practices and recommendations.
+
+**Arguments:**
+
+- `pipelineType` (optional): Type of pipeline (declarative, scripted,
+  multibranch)
+- `technology` (optional): Technology stack (java, node, python, docker, etc.)
+
+**Usage:**
+
+```bash
+echo '{"jsonrpc":"2.0","id":1,"method":"prompts/get","params":{"name":"jenkins_pipeline_best_practices","arguments":{"pipelineType":"declarative","technology":"docker"}}}' | jenkins-mcp-server
+```
+
+---
+
 ## Resources Reference
 
 Currently, the server focuses on tools and does not expose resources. Future
@@ -634,7 +745,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"jenkins_li
 echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"jenkins_create_job","arguments":{"jobName":"demo-job","jobType":"freestyle","description":"Demo job","commands":["echo Starting build","sleep 5","echo Build complete"]}}}' | jenkins-mcp-server
 
 # 3. Trigger the job
-echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"jenkins_trigger_job","arguments":{"jobName":"demo-job"}}}' | jenkins-mcp-server
+echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"jenkins_trigger_build","arguments":{"jobName":"demo-job"}}}' | jenkins-mcp-server
 
 # 4. Get job details
 echo '{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"jenkins_get_job","arguments":{"jobName":"demo-job"}}}' | jenkins-mcp-server

@@ -2,12 +2,15 @@
  * Basic validation utilities tests
  */
 
-import { assertEquals, assertThrows } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { 
-  jobNameSchema, 
-  buildNumberSchema, 
+import {
+  assertEquals,
+  assertThrows,
+} from "https://deno.land/std@0.208.0/assert/mod.ts";
+import {
+  buildNumberSchema,
+  jenkinsParameterSchema,
+  jobNameSchema,
   nodeNameSchema,
-  jenkinsParameterSchema 
 } from "../src/utils/validation.ts";
 
 Deno.test("Validation - Job Names", () => {
@@ -16,7 +19,7 @@ Deno.test("Validation - Job Names", () => {
   assertEquals(jobNameSchema.parse("my_pipeline"), "my_pipeline");
   assertEquals(jobNameSchema.parse("job123"), "job123");
   assertEquals(jobNameSchema.parse("folder/job"), "folder/job");
-  
+
   // Invalid job names should throw
   assertThrows(() => jobNameSchema.parse(""));
   assertThrows(() => jobNameSchema.parse("job with spaces"));
@@ -29,12 +32,15 @@ Deno.test("Validation - Build Numbers", () => {
   assertEquals(buildNumberSchema.parse("123"), 123);
   assertEquals(buildNumberSchema.parse(42), 42);
   assertEquals(buildNumberSchema.parse("lastBuild"), "lastBuild");
-  assertEquals(buildNumberSchema.parse("lastSuccessfulBuild"), "lastSuccessfulBuild");
-  
-  // Invalid build numbers should throw  
+  assertEquals(
+    buildNumberSchema.parse("lastSuccessfulBuild"),
+    "lastSuccessfulBuild",
+  );
+
+  // Invalid build numbers should throw
   assertThrows(() => buildNumberSchema.parse("-1"));
   assertThrows(() => buildNumberSchema.parse("abc"));
-  
+
   // Note: "0" might be valid in Jenkins (first build could be 0)
   // Let's test what the schema actually accepts
   try {
@@ -53,7 +59,7 @@ Deno.test("Validation - Node Names", () => {
   assertEquals(nodeNameSchema.parse("master"), "master");
   assertEquals(nodeNameSchema.parse("built-in"), "built-in");
   assertEquals(nodeNameSchema.parse("agent-01"), "agent-01");
-  
+
   // Invalid node names should throw
   assertThrows(() => nodeNameSchema.parse(""));
 });
@@ -63,13 +69,15 @@ Deno.test("Validation - Jenkins Parameters", () => {
   const validParams = {
     "stringParam": "value",
     "numberParam": 42,
-    "boolParam": true
+    "boolParam": true,
   };
-  
+
   assertEquals(jenkinsParameterSchema.parse(validParams), validParams);
-  
+
   // Invalid parameters should throw
-  assertThrows(() => jenkinsParameterSchema.parse({
-    "": "empty key not allowed"
-  }));
+  assertThrows(() =>
+    jenkinsParameterSchema.parse({
+      "": "empty key not allowed",
+    })
+  );
 });

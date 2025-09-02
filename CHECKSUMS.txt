@@ -1,4 +1,0 @@
-b6c4f3ea33ae8c865307ce87653e1fe0b695da139afad56336f348caf415fc8c  jenkins-mcp-server
-3f65ba4fb0ac5f4ba00c9df4c12721dd99acc6cbe4cf1eb996eeae571ac9de0e  jenkins-mcp-server-linux-x64
-81bb20e2344644df83685a1528c8e37955c59b34e98a0928c92d7d302c3efb10  jenkins-mcp-server-macos-arm64
-7d6cf0dfe3f4478ab0caa8cce6eb2899906b39c77c01dcede9298a7402e4d14f  jenkins-mcp-server-macos-x64
