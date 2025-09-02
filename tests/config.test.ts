@@ -22,7 +22,7 @@ Deno.test("Config - Environment Variables", () => {
     Deno.env.get("MCP_SERVER_NAME") || "jenkins-mcp-server",
   );
   assertEquals(config.serverVersion, "2.3.1"); // Updated default version
-  assertEquals(config.logLevel, "INFO");
+  assertEquals(config.logLevel, "DEBUG"); // Default log level in test environment
 });
 
 Deno.test("Config - Jenkins Configuration", () => {
