@@ -988,7 +988,10 @@ async function handlePrompt(
       try {
         // Get build info
         const targetBuildNumber = buildNumber || "lastBuild";
-        const build = await getJenkinsClient().getBuild(jobName, targetBuildNumber);
+        const build = await getJenkinsClient().getBuild(
+          jobName,
+          targetBuildNumber,
+        );
 
         // Get build logs (first 2000 chars)
         const logsResponse = await getJenkinsClient().getBuildLogs({
@@ -1009,9 +1012,9 @@ Build Information:
 - Started: ${new Date(build.timestamp).toISOString()}
 
 Build Console Logs (last 2000 characters):
-${'```'}
+${"```"}
 ${logsResponse.text.slice(-2000)}
-${'```'}
+${"```"}
 
 Please provide:
 1. Root cause analysis of the failure
@@ -1033,19 +1036,25 @@ Please provide:
         };
       } catch (error) {
         // Handle errors gracefully when job or build doesn't exist
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        
+        const errorMessage = error instanceof Error
+          ? error.message
+          : String(error);
+
         let helpfulPrompt = "";
-        
-        if (errorMessage.includes("404") || errorMessage.includes("Not Found")) {
+
+        if (
+          errorMessage.includes("404") || errorMessage.includes("Not Found")
+        ) {
           // Try to get available jobs to provide helpful suggestions
           try {
             const jobs = await getJenkinsClient().listJobs();
             const jobNames = jobs.map((job) => job.name).slice(0, 10); // Limit to first 10 jobs
-            
+
             helpfulPrompt = `**Jenkins Troubleshooting: Job or Build Not Found**
 
-The specified job "${jobName}" ${buildNumber ? `or build #${buildNumber}` : ""} could not be found on the Jenkins server.
+The specified job "${jobName}" ${
+              buildNumber ? `or build #${buildNumber}` : ""
+            } could not be found on the Jenkins server.
 
 **Possible Issues:**
 1. **Job name is incorrect** - Please check the spelling and case sensitivity
@@ -1054,10 +1063,11 @@ The specified job "${jobName}" ${buildNumber ? `or build #${buildNumber}` : ""} 
 4. **Permission issues** - You may not have access to view this job
 
 **Available Jobs on this Jenkins server:**
-${jobNames.length > 0 
-  ? jobNames.map(name => `- ${name}`).join('\n')
-  : "No jobs found or you may not have permission to view them"
-}
+${
+              jobNames.length > 0
+                ? jobNames.map((name) => `- ${name}`).join("\n")
+                : "No jobs found or you may not have permission to view them"
+            }
 
 **Next Steps:**
 1. Verify the job name from the Jenkins dashboard
@@ -1074,7 +1084,9 @@ ${jobNames.length > 0
             // If we can't even list jobs, provide basic guidance
             helpfulPrompt = `**Jenkins Troubleshooting: Job or Build Not Found**
 
-The specified job "${jobName}" ${buildNumber ? `or build #${buildNumber}` : ""} could not be found on the Jenkins server.
+The specified job "${jobName}" ${
+              buildNumber ? `or build #${buildNumber}` : ""
+            } could not be found on the Jenkins server.
 
 **Possible Issues:**
 1. **Job name is incorrect** - Please check the spelling and case sensitivity
@@ -1097,7 +1109,8 @@ The specified job "${jobName}" ${buildNumber ? `or build #${buildNumber}` : ""} 
           }
         } else {
           // Handle other types of errors
-          helpfulPrompt = `**Jenkins Troubleshooting: Error Accessing Build Information**
+          helpfulPrompt =
+            `**Jenkins Troubleshooting: Error Accessing Build Information**
 
 An error occurred while trying to access build information for job "${jobName}":
 
@@ -1127,7 +1140,7 @@ ${errorMessage}
           description: "Jenkins troubleshooting guidance - Job/Build not found",
           messages: [
             {
-              role: "user", 
+              role: "user",
               content: {
                 type: "text",
                 text: helpfulPrompt,

@@ -36,9 +36,9 @@ export class JenkinsClient {
 
   constructor(jenkinsConfig?: Partial<JenkinsConfig>) {
     // Read Jenkins URL from environment if not in config
-    this.jenkinsUrl = jenkinsConfig?.url || 
-                     config.jenkinsUrl || 
-                     Deno.env.get("JENKINS_URL") || "";
+    this.jenkinsUrl = jenkinsConfig?.url ||
+      config.jenkinsUrl ||
+      Deno.env.get("JENKINS_URL") || "";
     this.timeout = jenkinsConfig?.timeout || 30000; // 30 seconds default
     this.retries = jenkinsConfig?.retries || 3;
 
