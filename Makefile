@@ -100,6 +100,11 @@ build: clean ## Build standalone executable
 	@deno task build
 	@echo "$(GREEN)Build complete: $(BINARY_NAME)$(NC)"
 
+build-ci: clean ## Build for CI environments (without SSL certificate flags)
+	@echo "$(GREEN)Building for CI environment...$(NC)"
+	@deno task build:ci
+	@echo "$(GREEN)CI Build complete: $(BINARY_NAME)$(NC)"
+
 build-all: clean ## Build for all platforms
 	@echo "$(GREEN)Building for all platforms...$(NC)"
 	@deno task build:all

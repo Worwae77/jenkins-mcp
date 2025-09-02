@@ -20,7 +20,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: '2.4.5'
+          deno-version: '2.2.10'
 
       - name: Install dependencies
         run: make install
@@ -45,7 +45,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: '2.4.5'
+          deno-version: '2.2.10'
 
       - name: Install and test
         run: |
@@ -54,5 +54,5 @@ jobs:
         shell: bash
 
       - name: Test build for current platform
-        run: make build
+        run: make build-ci
         shell: bash
