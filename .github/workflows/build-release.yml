@@ -208,6 +208,10 @@ jobs:
           VERSION="${{ steps.version.outputs.VERSION }}"
           echo "Building Docker image for version: ${VERSION}"
           
+          # Verify version was injected into deno.json
+          echo "Checking version injection in deno.json:"
+          grep '"version"' deno.json || echo "No version found in deno.json"
+          
           # Use CI-compatible Docker build target with version
           make docker-build-ci
           echo "CI Docker build completed successfully"
@@ -226,6 +230,12 @@ jobs:
             docker images | grep jenkins-mcp-server || echo "No jenkins-mcp-server images found"
             echo "All available images:"
             docker images
+            echo "Debugging version extraction:"
+            echo "Expected version: ${VERSION}"
+            echo "deno.json content:"
+            cat deno.json
+            echo "version.ts content:"
+            cat src/utils/version.ts
             exit 1
           fi
 
