@@ -268,13 +268,13 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: '2.2.10'
+          deno-version: '2.4.5'
 
       - name: Prepare release using Makefile
         run: |
           make install
-          make release
-          echo "Release preparation completed using 'make release'"
+          make quality-ci
+          echo "Release preparation completed - artifacts will be built by matrix jobs"
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
