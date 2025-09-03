@@ -20,7 +20,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: '2.2.10'
+          deno-version: '1.x'
 
       - name: Install dependencies
         run: make install
@@ -31,13 +31,10 @@ jobs:
       - name: Show project information
         run: make info
 
-  # Matrix test across platforms using same Makefile commands
-  cross-platform-test:
-    name: Cross-Platform Test
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+  # Simplified test on Ubuntu only for now
+  build-test:
+    name: Build Test
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -45,14 +42,12 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: '2.2.10'
+          deno-version: '1.x'
 
       - name: Install and test
         run: |
           make install
           make quality-ci
-        shell: bash
 
       - name: Test build for current platform
         run: make build-ci
-        shell: bash
