@@ -1,7 +1,7 @@
 # Jenkins MCP Server Makefile
 # Production-ready build system for Jenkins MCP Server
 
-.PHONY: help install clean build build-all build-linux build-macos build-macos-arm build-windows test start dev check fmt lint quality version-info examples info
+.PHONY: help install clean build build-all build-linux build-macos build-macos-arm build-windows docker-build docker-build-ci test start dev check fmt lint quality version-info examples info
 
 # Default target
 .DEFAULT_GOAL := help
@@ -135,6 +135,25 @@ build-windows: clean ## Build for Windows x64
 	@echo "$(GREEN)Building for Windows x64...$(NC)"
 	@deno task build:windows
 	@echo "$(GREEN)Windows build complete: jenkins-mcp-server-windows-x64.exe$(NC)"
+
+## Docker Targets
+docker-build: ## Build Docker image for local development
+	@echo "$(GREEN)Building Docker image for local development...$(NC)"
+	@docker build -t jenkins-mcp-server:$(VERSION) .
+	@docker tag jenkins-mcp-server:$(VERSION) jenkins-mcp-server:latest
+	@echo "$(GREEN)Docker image built: jenkins-mcp-server:$(VERSION)$(NC)"
+
+docker-build-ci: ## Build Docker image for CI/CD (no SSL bypass)
+	@echo "$(GREEN)Building Docker image for CI/CD...$(NC)"
+	@if [[ "${GITHUB_REF}" == refs/tags/* ]]; then \
+		DOCKER_VERSION=$${GITHUB_REF#refs/tags/v}; \
+	else \
+		DOCKER_VERSION="0.0.0-dev"; \
+	fi; \
+	echo "Building with version: $$DOCKER_VERSION"; \
+	docker build --build-arg VERSION=$$DOCKER_VERSION -t jenkins-mcp-server:$$DOCKER_VERSION .; \
+	docker tag jenkins-mcp-server:$$DOCKER_VERSION jenkins-mcp-server:latest; \
+	echo "$(GREEN)CI Docker image built: jenkins-mcp-server:$$DOCKER_VERSION$(NC)"
 
 ## Utilities
 check-env:
