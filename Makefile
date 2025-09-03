@@ -74,6 +74,10 @@ test: ## Run all tests
 	@echo "$(GREEN)Running tests...$(NC)"
 	@deno task test
 
+test-ci: ## Run tests for CI/CD with proper environment
+	@echo "$(GREEN)Running CI tests...$(NC)"
+	@deno task test:ci
+
 check: ## Check TypeScript compilation
 	@echo "$(GREEN)Checking TypeScript compilation...$(NC)"
 	@deno task check
@@ -88,6 +92,8 @@ lint: ## Lint code
 
 quality: fmt lint check test ## Run all quality checks
 
+quality-ci: fmt lint check test-ci ## Run quality checks for CI/CD
+
 ## Build
 clean: ## Clean build artifacts
 	@echo "$(GREEN)Cleaning build artifacts...$(NC)"
@@ -100,10 +106,10 @@ build: clean ## Build standalone executable
 	@deno task build
 	@echo "$(GREEN)Build complete: $(BINARY_NAME)$(NC)"
 
-build-ci: clean ## Build for CI environments (without SSL certificate flags)
-	@echo "$(GREEN)Building for CI environment...$(NC)"
+build-ci: clean ## Build for CI/CD (without unsafe SSL flags)
+	@echo "$(GREEN)Building for CI/CD...$(NC)"
 	@deno task build:ci
-	@echo "$(GREEN)CI Build complete: $(BINARY_NAME)$(NC)"
+	@echo "$(GREEN)CI build complete: $(BINARY_NAME)$(NC)"
 
 build-all: clean ## Build for all platforms
 	@echo "$(GREEN)Building for all platforms...$(NC)"

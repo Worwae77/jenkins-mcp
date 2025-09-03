@@ -20,13 +20,13 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: '2.2.10'
+          deno-version: '2.4.5'
 
       - name: Install dependencies
         run: make install
 
       - name: Run comprehensive quality checks
-        run: make quality
+        run: make quality-ci
 
       - name: Show project information
         run: make info
@@ -45,12 +45,12 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: '2.2.10'
+          deno-version: '2.4.5'
 
       - name: Install and test
         run: |
           make install
-          make quality
+          make quality-ci
         shell: bash
 
       - name: Test build for current platform

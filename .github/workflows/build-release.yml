@@ -38,13 +38,13 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: '2.2.10'
+          deno-version: '2.4.5'
 
       - name: Install dependencies
         run: make install
 
       - name: Run comprehensive quality checks
-        run: make quality
+        run: make quality-ci
 
       - name: Show project information
         run: make info
@@ -76,7 +76,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: '2.2.10'
+          deno-version: '2.4.5'
 
       - name: Install dependencies
         run: make install
@@ -106,52 +106,14 @@ jobs:
           echo "Version injection completed"
 
       - name: Run quality checks
-        run: make quality
+        run: make quality-ci
 
-      - name: Build binary for target platform (with SSL handling)
-        run: |
-          # Try normal build first, fallback to SSL-bypass if needed
-          case "${{ matrix.os }}" in
-            "ubuntu-latest")
-              if ! make build-linux; then
-                echo "Normal build failed, trying with SSL bypass..."
-                deno compile --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors --target x86_64-unknown-linux-gnu --output jenkins-mcp-server-linux-x64 src/simple-server.ts
-              fi
-              # Only move if source and destination are different
-              if [ "jenkins-mcp-server-linux-x64" != "${{ matrix.artifact }}" ]; then
-                mv jenkins-mcp-server-linux-x64 ${{ matrix.artifact }}
-              fi
-              ;;
-            "macos-latest")
-              if [ "${{ matrix.target }}" = "aarch64-apple-darwin" ]; then
-                if ! make build-macos-arm; then
-                  echo "Normal build failed, trying with SSL bypass..."
-                  deno compile --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors --target aarch64-apple-darwin --output jenkins-mcp-server-macos-arm64 src/simple-server.ts
-                fi
-                if [ "jenkins-mcp-server-macos-arm64" != "${{ matrix.artifact }}" ]; then
-                  mv jenkins-mcp-server-macos-arm64 ${{ matrix.artifact }}
-                fi
-              else
-                if ! make build-macos; then
-                  echo "Normal build failed, trying with SSL bypass..."
-                  deno compile --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors --target x86_64-apple-darwin --output jenkins-mcp-server-macos-x64 src/simple-server.ts
-                fi
-                if [ "jenkins-mcp-server-macos-x64" != "${{ matrix.artifact }}" ]; then
-                  mv jenkins-mcp-server-macos-x64 ${{ matrix.artifact }}
-                fi
-              fi
-              ;;
-            "windows-latest")
-              if ! make build-windows; then
-                echo "Normal build failed, trying with SSL bypass..."
-                deno compile --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors --target x86_64-pc-windows-msvc --output jenkins-mcp-server-windows-x64.exe src/simple-server.ts
-              fi
-              if [ "jenkins-mcp-server-windows-x64.exe" != "${{ matrix.artifact }}" ]; then
-                mv jenkins-mcp-server-windows-x64.exe ${{ matrix.artifact }}
-              fi
-              ;;
-          esac
+      - name: Build binary for target platform
         shell: bash
+        run: |
+          echo "Building for target: ${{ matrix.target }}"
+          deno compile --allow-net --allow-env --allow-read --allow-write --target ${{ matrix.target }} --output ${{ matrix.artifact }} src/simple-server.ts
+          echo "Build completed: ${{ matrix.artifact }}"
 
       - name: Generate checksums
         run: |
