@@ -56,23 +56,41 @@ install: ## Install dependencies and setup environment
 ## Development
 dev: check-env ## Start development server
 	@echo "$(GREEN)Starting development server...$(NC)"
-	@export $$(cat $(ENV_FILE) | grep -v '^#' | grep -v '^$$' | xargs) && \
-	deno run --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors src/simple-server.ts
+	@if [ -f "$(ENV_FILE)" ]; then \
+		set -a && . ./$(ENV_FILE) && set +a && \
+		deno run --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors src/simple-server.ts; \
+	else \
+		echo "$(RED)Error: $(ENV_FILE) not found. Run 'make install' first.$(NC)"; \
+		exit 1; \
+	fi
 
 start: check-env ## Start the MCP server
 	@echo "$(GREEN)Starting Jenkins MCP Server...$(NC)"
-	@export $$(cat $(ENV_FILE) | grep -v '^#' | grep -v '^$$' | xargs) && \
-	if [ -f "./$(BINARY_NAME)" ]; then \
-		exec ./$(BINARY_NAME); \
+	@if [ -f "$(ENV_FILE)" ]; then \
+		if [ -f "./$(BINARY_NAME)" ]; then \
+			set -a && . ./$(ENV_FILE) && set +a && exec ./$(BINARY_NAME); \
+		else \
+			echo "$(YELLOW)Binary not found, running from source...$(NC)"; \
+			set -a && . ./$(ENV_FILE) && set +a && \
+			deno run --allow-net --allow-env --allow-read --allow-write src/simple-server.ts; \
+		fi; \
 	else \
-		echo "$(YELLOW)Binary not found, running from source...$(NC)"; \
-		deno run --allow-net --allow-env --allow-read --allow-write src/simple-server.ts; \
+		echo "$(RED)Error: $(ENV_FILE) not found. Run 'make install' first.$(NC)"; \
+		exit 1; \
 	fi
 
 ## Testing & Quality
-test: ## Run all tests
-	@echo "$(GREEN)Running tests...$(NC)"
-	@deno task test
+test: ## Run all tests (unit + integration)
+	@echo "$(GREEN)Running all tests...$(NC)"
+	@deno task test:all
+
+test-unit: ## Run only unit tests
+	@echo "$(GREEN)Running unit tests...$(NC)"
+	@deno task test:unit
+
+test-integration: ## Run only integration tests
+	@echo "$(GREEN)Running integration tests...$(NC)"
+	@deno task test:integration
 
 test-ci: ## Run tests for CI/CD with proper environment
 	@echo "$(GREEN)Running CI tests...$(NC)"
@@ -198,3 +216,23 @@ info: ## Show project information
 	@echo ""
 	@echo "$(GREEN)Available deno tasks:$(NC)"
 	@deno task --help 2>/dev/null | grep -E "^  [a-z]" || echo "  Run 'deno task' to see available tasks"
+
+# Corporate deployment
+corporate-deploy: docker-build-corporate
+	@echo "Starting Jenkins MCP Server in Corporate Mode..."
+	docker-compose -f docker-compose.corporate.yml up -d
+	@echo "Corporate deployment complete! Server is running with SSL bypass."
+
+corporate-stop:
+	@echo "Stopping corporate deployment..."
+	docker-compose -f docker-compose.corporate.yml down
+
+corporate-logs:
+	@echo "Showing corporate deployment logs..."
+	docker-compose -f docker-compose.corporate.yml logs -f
+
+corporate-restart: corporate-stop corporate-deploy
+
+corporate-status:
+	@echo "Corporate deployment status:"
+	docker-compose -f docker-compose.corporate.yml ps

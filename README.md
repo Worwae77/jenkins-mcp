@@ -1,215 +1,228 @@
-# Jenkins MCP Server
+# Jenkins MCP Server - Organizational Use
 
-A Model Context Protocol (MCP) server that enables AI assistants to interact
-with Jenkins through a secure, standardized API.
+A Model Context Protocol (MCP) server for internal Jenkins automation at Kasikorn Bank.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Internal Use](https://img.shields.io/badge/Status-Internal%20Use-red.svg)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
-[![Deno](https://img.shields.io/badge/Deno-1.37+-black.svg)](https://deno.land/)
+[![Deno](https://img.shields.io/badge/Deno-2.0+-black.svg)](https://deno.land/)
 
-## 🚀 Quick Start
+## 🏢 Organizational Quick Start
 
 ### Prerequisites
 
-- [Deno](https://deno.land/) 1.37 or later
-- Access to a Jenkins server
-- Jenkins API token (recommended) or username/password
+- [Deno](https://deno.land/) 2.0 or later
+- Access to Kasikorn Bank Jenkins (`jenkins-ops.kasikornbank.com`)
+- Service account credentials (contact IT for setup)
+- Docker for containerized deployment
 
-### Installation
+### Installation & Setup
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/Worwae77/jenkins-mcp.git
+# 1. Clone from internal repository
+git clone <internal-repo-url>
 cd jenkins-mcp
 
-# 2. Install dependencies and setup
-make install
+# 2. Create organizational configuration
+make check-org-env
+# Edit .env.org with organizational settings
 
-# 3. Configure your Jenkins connection
-cp .env.example .env.local
-# Edit .env.local with your Jenkins server details
+# 3. Deploy organizational version
+make deploy-org
 ```
 
-### Configuration
+## 🐳 Docker Deployment (Recommended)
 
-Edit `.env.local` with your Jenkins server information:
-
+### Quick Deploy
 ```bash
-# Required: Jenkins server URL
-JENKINS_URL=https://your-jenkins-server.com
+# Build and deploy organizational version
+make deploy-org
 
-# Recommended: API Token authentication
-JENKINS_USERNAME=your-username
-JENKINS_API_TOKEN=your-api-token
-
-# Optional: SSL settings
-JENKINS_SSL_VERIFY=true
+# Check status
+docker-compose -f docker-compose.org.yml logs
 ```
 
-### Running
-
+### Manual Docker Commands
 ```bash
-# Development mode (with auto-reload)
-make dev
+# Build organizational image
+docker build -f Dockerfile.org -t jenkins-mcp-server:org .
 
-# Production mode
-make start
-
-# Build standalone executable
-make build
-./jenkins-mcp-server
+# Run with organizational settings
+docker run --rm -i --env-file .env.org jenkins-mcp-server:org
 ```
 
-## 🐳 Docker Usage
+## 🔧 Configuration
 
+### Organizational Environment (`.env.org`)
 ```bash
-# Using docker-compose (recommended)
-cp .env.example .env.local
-# Edit .env.local with your settings
-docker-compose up
+# Jenkins Configuration
+JENKINS_URL=https://jenkins-ops.kasikornbank.com
+JENKINS_USERNAME=your-service-account
+JENKINS_API_TOKEN=your-service-account-token
 
-# Direct docker run
-docker run -e JENKINS_URL=https://your-jenkins.com \
-           -e JENKINS_USERNAME=your-username \
-           -e JENKINS_API_TOKEN=your-token \
-           jenkins-mcp-server:latest
+# SSL Configuration (corporate environment)
+JENKINS_SSL_VERIFY=false
+JENKINS_SSL_BYPASS_ALL=true
+JENKINS_SSL_ALLOW_SELF_SIGNED=true
+
+# Logging & Monitoring
+LOG_LEVEL=debug
+ENABLE_AUDIT_LOG=true
 ```
 
-## 🤖 AI Integration
-
-### Claude Desktop
-
-Add to your Claude Desktop configuration:
-
+### VS Code Integration
+The VS Code MCP configuration is pre-configured for organizational use:
 ```json
 {
-  "mcpServers": {
-    "jenkins": {
-      "command": "/path/to/jenkins-mcp-server",
-      "env": {
-        "JENKINS_URL": "https://your-jenkins.com",
-        "JENKINS_USERNAME": "your-username",
-        "JENKINS_API_TOKEN": "your-token"
-      }
+  "servers": {
+    "jenkins-mcp-org": {
+      "command": "docker",
+      "args": ["run", "--rm", "-i", "--env-file", ".env.org", "jenkins-mcp-server:org"]
     }
   }
 }
 ```
 
-### VS Code with MCP Extensions
+## 🔒 Security & Compliance
 
-The server automatically integrates with VS Code MCP extensions when
-`make install` creates the configuration files.
+### SSL Configuration
+- SSL verification **DISABLED** for corporate environment
+- Self-signed certificates **ALLOWED** for internal CA
+- SSL bypass **ENABLED** for corporate proxy/firewall
 
-## 🛠️ Available Tools
+### Credential Management
+- **Service accounts only** - no personal credentials
+- Credentials stored in `.env.org` (never committed)
+- Regular credential rotation required (quarterly)
 
-The Jenkins MCP Server provides **13 production-ready tools** for Jenkins
-automation:
+### Audit & Monitoring
+- All API calls logged with timestamps
+- User activity tracking enabled
+- Resource usage monitoring
+- Compliance logging for security reviews
 
-### Core Job Management
+## 🛠️ Available Commands
 
-- **jenkins_list_jobs** - List all Jenkins jobs with their current status
-- **jenkins_get_job** - Get detailed information about a specific job
-- **jenkins_create_job** - Create new freestyle or pipeline jobs
-- **jenkins_trigger_build** - Trigger a new build for a job
-- **jenkins_get_build** - Get build information and status
-- **jenkins_stop_build** - Stop a running build
-
-### Build Operations & Debugging
-
-- **jenkins_get_build_logs** - Retrieve console logs from builds
-
-### Infrastructure Management
-
-- **jenkins_list_nodes** - List all Jenkins nodes and their status
-- **jenkins_get_node_status** - Get detailed status of a specific node
-
-### Queue Management
-
-- **jenkins_get_queue** - Get current build queue
-- **jenkins_cancel_queue_item** - Cancel queued builds
-
-### System Information & Diagnostics
-
-- **jenkins_get_version** - Get Jenkins server version and info
-- **jenkins_ssl_diagnostics** - Troubleshoot SSL/TLS configuration
-
-### AI-Powered Features
-
-- **Prompts**: 2 intelligent prompts for troubleshooting and best practices
-- **Resources**: 1 resource for job discovery and monitoring
-
-## 🧪 Testing
-
+### Deployment
 ```bash
-# Run all tests
-make test
-
-# Check TypeScript compilation
-make check
-
-# Format and lint code
-make fmt lint
+make deploy-org          # Deploy organizational version
+make stop-org           # Stop organizational deployment
+make clean-org          # Clean organizational artifacts
 ```
+
+### Development & Testing
+```bash
+make docker-build-org   # Build organizational Docker image
+make test-unit          # Run unit tests
+make test-integration   # Run integration tests
+make quality            # Run all quality checks
+```
+
+### Monitoring
+```bash
+# View logs
+docker-compose -f docker-compose.org.yml logs
+
+# Check health
+docker-compose -f docker-compose.org.yml ps
+
+# Monitor resources
+docker stats jenkins-mcp-server-org
+```
+
+## 📋 Jenkins Tools Available
+
+The MCP server provides these Jenkins automation tools:
+
+### Job Management
+- `jenkins_list_jobs` - List all Jenkins jobs
+- `jenkins_get_job` - Get job details
+- `jenkins_trigger_build` - Start a build
+- `jenkins_create_job` - Create new job
+
+### Build Operations
+- `jenkins_get_build` - Get build information
+- `jenkins_get_build_logs` - Retrieve build logs
+- `jenkins_stop_build` - Stop running build
+
+### Infrastructure
+- `jenkins_list_nodes` - List Jenkins nodes
+- `jenkins_get_node_status` - Check node status
+- `jenkins_get_queue` - View build queue
+- `jenkins_cancel_queue_item` - Cancel queued build
+
+### Diagnostics
+- `jenkins_get_version` - Get Jenkins version
+- `jenkins_ssl_diagnostics` - SSL troubleshooting
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+#### SSL Certificate Errors
+```bash
+# Check SSL configuration
+docker-compose -f docker-compose.org.yml exec jenkins-mcp-server printenv | grep SSL
+```
+
+#### Connection Timeouts
+```bash
+# Test Jenkins connectivity
+docker-compose -f docker-compose.org.yml exec jenkins-mcp-server \
+  curl -k -v https://jenkins-ops.kasikornbank.com
+```
+
+#### Authentication Failures
+- Verify service account credentials are current
+- Check if service account has necessary Jenkins permissions
+- Ensure API token is valid and not expired
+
+### Debug Mode
+Enable detailed logging:
+```bash
+# Edit .env.org
+LOG_LEVEL=debug
+JENKINS_SSL_DEBUG=true
+
+# Redeploy
+make stop-org && make deploy-org
+```
+
+## 📊 Performance & Monitoring
+
+### Resource Usage
+- Memory: 256-512MB typical usage
+- CPU: Low usage, spikes during API calls
+- Network: Minimal bandwidth requirements
+
+### Health Monitoring
+- Automated health checks every 15 seconds
+- Failure detection and restart capabilities
+- Resource limit enforcement
 
 ## 📚 Documentation
 
-- [SSL Configuration Guide](docs/SSL_CONFIGURATION.md) - Enterprise SSL setup
-- [API Reference](docs/api/API_REFERENCE.md) - Complete tool documentation
+- [Organizational Deployment Guide](docs/ORGANIZATIONAL_DEPLOYMENT.md)
+- [Environment Variable Configuration](docs/ENV_VARIABLE_FIXES.md)
+- [Testing Guide](docs/TESTING_GUIDE.md)
+- [API Reference](docs/api/API_REFERENCE.md)
 
-## 🔧 Development
+## 🆘 Support
 
-### Project Structure
+For organizational deployment issues:
+1. Check troubleshooting section above
+2. Review container logs for error details
+3. Verify network connectivity to Jenkins
+4. Contact IT support team for infrastructure issues
 
-```text
-jenkins-mcp/
-├── src/
-│   ├── simple-server.ts      # Main MCP server
-│   ├── jenkins/              # Jenkins client & auth
-│   └── utils/                # Configuration & utilities
-├── tests/                    # Unit tests
-├── docs/                     # Documentation
-└── experimental/             # Experimental features
-```
+## 🔐 Security Notice
 
-### Commands
-
-```bash
-make help      # Show all available commands
-make examples  # Show usage examples
-make clean     # Clean build artifacts
-```
-
-## 🔒 Security
-
-- **Credentials**: Never commit real credentials. Use `.env.local` (gitignored)
-- **SSL/TLS**: Proper certificate validation enabled by default
-- **API Tokens**: Recommended over username/password authentication
-- **Access Control**: Respects Jenkins user permissions and security realms
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes and add tests
-4. Ensure tests pass: `make test`
-5. Commit your changes: `git commit -m 'Add amazing feature'`
-6. Push to the branch: `git push origin feature/amazing-feature`
-7. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
-for details.
-
-## 🙏 Acknowledgments
-
-- Built with [Model Context Protocol](https://modelcontextprotocol.io/)
-- Powered by [Deno](https://deno.land/) runtime
-- Jenkins automation via
-  [Jenkins REST API](https://www.jenkins.io/doc/book/using/remote-access-api/)
+**FOR INTERNAL USE ONLY**
+- This deployment is configured for Kasikorn Bank internal networks
+- SSL verification is disabled for corporate environment compatibility
+- All usage is logged and monitored for compliance
+- Credentials must be managed according to organizational security policy
 
 ---
 
-**Note**: This is a community project and is not officially affiliated with
-Jenkins or the Jenkins project.
+*Jenkins MCP Server - Kasikorn Bank Internal Use*  
+*Last Updated: September 2025*

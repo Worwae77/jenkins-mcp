@@ -34,9 +34,27 @@ RUN chmod +x /usr/local/bin/jenkins-mcp-server
 USER mcp
 
 # Environment variables (can be overridden)
+# Logging configuration
 ENV LOG_LEVEL=info
+ENV ENABLE_AUDIT_LOG=true
+
+# Jenkins timeout and retry settings
 ENV JENKINS_TIMEOUT=30000
 ENV JENKINS_RETRIES=3
+
+# SSL/TLS settings (secure by default)
+ENV JENKINS_SSL_VERIFY=true
+ENV JENKINS_SSL_ALLOW_SELF_SIGNED=false
+ENV JENKINS_SSL_DEBUG=false
+
+# Server configuration
+ENV MCP_SERVER_NAME=jenkins-mcp-server
+ENV RATE_LIMIT_PER_MINUTE=60
+
+# Required variables (must be provided at runtime)
+# ENV JENKINS_URL=          # REQUIRED: Set via docker run -e or docker-compose
+# ENV JENKINS_USERNAME=     # REQUIRED: Set via docker run -e or docker-compose  
+# ENV JENKINS_API_TOKEN=    # REQUIRED: Set via docker run -e or docker-compose
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

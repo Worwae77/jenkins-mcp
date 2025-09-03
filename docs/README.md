@@ -150,26 +150,26 @@ comprehensive categories:
 
 ### 🏗️ **Core Jenkins Operations (13 Tools)**
 
-| Category                    | Tools                                                              | Description                          |
-| --------------------------- | ------------------------------------------------------------------ | ------------------------------------ |
-| **Job Management**          | `jenkins_list_jobs`, `jenkins_get_job`, `jenkins_create_job`       | Job discovery and management         |
-| **Build Operations**        | `jenkins_trigger_build`, `jenkins_get_build`, `jenkins_stop_build` | Build control and monitoring         |
-| **Logging & Debugging**     | `jenkins_get_build_logs`                                           | Console output and debugging         |
-| **Infrastructure**          | `jenkins_list_nodes`, `jenkins_get_node_status`                    | Agent and node management            |
-| **Queue Management**        | `jenkins_get_queue`, `jenkins_cancel_queue_item`                   | Build queue operations               |
-| **System Info & Security**  | `jenkins_get_version`, `jenkins_ssl_diagnostics`                   | Server information and SSL diagnostics |
+| Category                   | Tools                                                              | Description                            |
+| -------------------------- | ------------------------------------------------------------------ | -------------------------------------- |
+| **Job Management**         | `jenkins_list_jobs`, `jenkins_get_job`, `jenkins_create_job`       | Job discovery and management           |
+| **Build Operations**       | `jenkins_trigger_build`, `jenkins_get_build`, `jenkins_stop_build` | Build control and monitoring           |
+| **Logging & Debugging**    | `jenkins_get_build_logs`                                           | Console output and debugging           |
+| **Infrastructure**         | `jenkins_list_nodes`, `jenkins_get_node_status`                    | Agent and node management              |
+| **Queue Management**       | `jenkins_get_queue`, `jenkins_cancel_queue_item`                   | Build queue operations                 |
+| **System Info & Security** | `jenkins_get_version`, `jenkins_ssl_diagnostics`                   | Server information and SSL diagnostics |
 
 ### 🤖 **AI-Powered Features**
 
-| Category                | Tools                                                                   | Description                              |
-| ----------------------- | ----------------------------------------------------------------------- | ---------------------------------------- |
-| **Intelligent Prompts** | `jenkins_troubleshoot_build_failure`, `jenkins_pipeline_best_practices` | AI-driven troubleshooting and guidance   |
-| **Resource Discovery**  | `jenkins://jobs` resource                                               | Dynamic job listing and monitoring       |
+| Category                | Tools                                                                   | Description                            |
+| ----------------------- | ----------------------------------------------------------------------- | -------------------------------------- |
+| **Intelligent Prompts** | `jenkins_troubleshoot_build_failure`, `jenkins_pipeline_best_practices` | AI-driven troubleshooting and guidance |
+| **Resource Discovery**  | `jenkins://jobs` resource                                               | Dynamic job listing and monitoring     |
 
 ### 🔮 **Future Features (Experimental)**
 
-Advanced agent management, auto-recovery, and multi-cluster support are
-planned for v2.6+ but not yet available in the current production release.
+Advanced agent management, auto-recovery, and multi-cluster support are planned
+for v2.6+ but not yet available in the current production release.
 
 For complete tool documentation, see [API Reference](api/API_REFERENCE.md).
 

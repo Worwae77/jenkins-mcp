@@ -2,6 +2,25 @@
 .env.local
 .env
 .envrc
+.env.corporate
+.env.org
+
+# Organizational secrets (never commit these)
+credentials/
+secrets/
+*.key
+*.pem
+*.p12
+*.pfx
+jenkins-credentials-*
+service-account-*
+corporate-certs/
+audit-logs/
+internal-config/
+corporate-docs/
+deployment-secrets/
+monitoring-data/
+backup-configs/
 
 # Compiled binaries
 jenkins-mcp-server

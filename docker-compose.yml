@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  jenkins-mcp-server:
+    build: .
+    image: jenkins-mcp-server:latest
+    container_name: jenkins-mcp-server
+    
+    # Environment variables - configure these for your Jenkins instance
+    environment:
+      # Required Jenkins configuration
+      JENKINS_URL: ${JENKINS_URL:-https://demo.jenkins.io}
+      JENKINS_USERNAME: ${JENKINS_USERNAME:-your-username}
+      JENKINS_API_TOKEN: ${JENKINS_API_TOKEN:-your-api-token}
+      
+      # Optional configuration with sensible defaults
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      JENKINS_TIMEOUT: ${JENKINS_TIMEOUT:-30000}
+      JENKINS_RETRIES: ${JENKINS_RETRIES:-3}
+      
+      # SSL configuration (secure by default)
+      JENKINS_SSL_VERIFY: ${JENKINS_SSL_VERIFY:-true}
+      JENKINS_SSL_ALLOW_SELF_SIGNED: ${JENKINS_SSL_ALLOW_SELF_SIGNED:-false}
+      JENKINS_SSL_DEBUG: ${JENKINS_SSL_DEBUG:-false}
+      
+      # Server configuration
+      MCP_SERVER_NAME: ${MCP_SERVER_NAME:-jenkins-mcp-server}
+      RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-60}
+      ENABLE_AUDIT_LOG: ${ENABLE_AUDIT_LOG:-true}
+    
+    # Load environment from .env.local if it exists
+    env_file:
+      - .env.local
+    
+    # Security: run as non-root
+    user: mcp
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+    
+    # Health check
+    healthcheck:
+      test: ["CMD-SHELL", "echo '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",\"params\":{}}' | jenkins-mcp-server || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Stdin/stdout for MCP communication
+    stdin_open: true
+    tty: false
