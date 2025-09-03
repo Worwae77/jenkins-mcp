@@ -8,7 +8,7 @@
     "fmt": "deno fmt src/ tests/",
     "lint": "deno lint src/ tests/",
     "test": "deno test --allow-net --allow-env --allow-read --allow-write",
-    "test:ci": "JENKINS_URL=https://demo.jenkins.io JENKINS_USERNAME=test JENKINS_API_TOKEN=test deno test --allow-net --allow-env --allow-read --allow-write",
+    "test:ci": "JENKINS_URL=https://demo.jenkins.io JENKINS_USERNAME=ci-test-user JENKINS_API_TOKEN=ci-test-token-12345 deno test --allow-net --allow-env --allow-read --allow-write",
     "build": "deno compile --allow-net --allow-env --allow-read --allow-write --unsafely-ignore-certificate-errors --output jenkins-mcp-server src/simple-server.ts",
     "build:ci": "deno compile --allow-net --allow-env --allow-read --allow-write --output jenkins-mcp-server src/simple-server.ts",
     "build:linux": "deno compile --allow-net --allow-env --allow-read --allow-write --target x86_64-unknown-linux-gnu --output jenkins-mcp-server-linux-x64 src/simple-server.ts",
