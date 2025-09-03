@@ -5,7 +5,7 @@ name: Continuous Integration
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, fix/docker-version-injection ]
   pull_request:
     branches: [ main ]
 
@@ -31,9 +31,9 @@ jobs:
       - name: Show project information
         run: make info
 
-  # Matrix test across platforms using same Makefile commands
-  cross-platform-test:
-    name: Cross-Platform Test
+  # Cross-platform build test (simplified)
+  build-test:
+    name: Build Test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
