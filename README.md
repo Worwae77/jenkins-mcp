@@ -103,44 +103,41 @@ The server automatically integrates with VS Code MCP extensions when
 
 ## 🛠️ Available Tools
 
-The Jenkins MCP Server provides 13 production-ready tools for Jenkins
+The Jenkins MCP Server provides **13 production-ready tools** for Jenkins
 automation:
 
-### Job Management
+### Core Job Management
 
-- **jenkins_list_jobs** - List all Jenkins jobs with status
+- **jenkins_list_jobs** - List all Jenkins jobs with their current status
 - **jenkins_get_job** - Get detailed information about a specific job
 - **jenkins_create_job** - Create new freestyle or pipeline jobs
 - **jenkins_trigger_build** - Trigger a new build for a job
-
-### Build Operations
-
 - **jenkins_get_build** - Get build information and status
-- **jenkins_get_build_logs** - Retrieve console logs from builds
 - **jenkins_stop_build** - Stop a running build
-- **jenkins_troubleshoot_build_failure** - Analyze build failures
 
-### Node Management
+### Build Operations & Debugging
+
+- **jenkins_get_build_logs** - Retrieve console logs from builds
+
+### Infrastructure Management
 
 - **jenkins_list_nodes** - List all Jenkins nodes and their status
 - **jenkins_get_node_status** - Get detailed status of a specific node
-- **jenkins_restart_agent** - Restart Jenkins agents/nodes
-- **jenkins_agent_diagnostics** - Comprehensive agent diagnostics
 
-### Queue Operations
+### Queue Management
 
 - **jenkins_get_queue** - Get current build queue
 - **jenkins_cancel_queue_item** - Cancel queued builds
 
-### System Information
+### System Information & Diagnostics
 
 - **jenkins_get_version** - Get Jenkins server version and info
 - **jenkins_ssl_diagnostics** - Troubleshoot SSL/TLS configuration
 
-### Automation & Best Practices
+### AI-Powered Features
 
-- **jenkins_auto_recovery** - Automated recovery operations
-- **jenkins_pipeline_best_practices** - Pipeline guidance and recommendations
+- **Prompts**: 2 intelligent prompts for troubleshooting and best practices
+- **Resources**: 1 resource for job discovery and monitoring
 
 ## 🧪 Testing
 

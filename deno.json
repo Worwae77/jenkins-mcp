@@ -1,6 +1,6 @@
 {
   "name": "jenkins-mcp-server",
-  "version": "0.0.0-dev",
+  "version": "2.5.3",
   "description": "Model Context Protocol server for Jenkins automation and management",
   "exports": "./src/simple-server.ts",
   "tasks": {

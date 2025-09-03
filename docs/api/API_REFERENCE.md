@@ -2,10 +2,10 @@
 
 ## Jenkins Model Context Protocol Server
 
-**Version:** 1.0\
+**Version:** 2.5.3\
 **Protocol:** Model Context Protocol (MCP)\
 **Transport:** JSON-RPC 2.0 over stdio\
-**Date:** August 30, 2025
+**Date:** September 3, 2025
 
 ---
 
@@ -36,8 +36,7 @@ the JSON-RPC 2.0 specification.
 **Available Tools:** 13 production-ready tools covering job management, build
 operations, node management, queue operations, and system information.
 
-**Experimental Features:** 3 additional agent management tools (available in
-v1.1+)
+**Future Features:** Advanced agent management tools (planned for v2.6+)
 
 **Prompts:** 2 AI-assisted troubleshooting and guidance prompts
 
