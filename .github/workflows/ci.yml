@@ -26,7 +26,7 @@ jobs:
         run: make install
 
       - name: Run comprehensive quality checks
-        run: make quality
+        run: make quality-ci
 
       - name: Show project information
         run: make info
@@ -50,9 +50,9 @@ jobs:
       - name: Install and test
         run: |
           make install
-          make quality
+          make quality-ci
         shell: bash
 
       - name: Test build for current platform
-        run: make build
+        run: make build-ci
         shell: bash

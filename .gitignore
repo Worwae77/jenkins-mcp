@@ -6,21 +6,27 @@
 # Compiled binaries
 jenkins-mcp-server
 jenkins-mcp-server-*
-artifacts/jenkins-mcp-server-*
-/deployment/jenkins-mcp-server/jenkins-mcp-server
+*.exe
 
 # Build artifacts
 *.tar.gz
 *.zip
+artifacts/
+dist/
 
 # Deno cache
 .deno/
 
-# IDE files - NEVER commit to avoid credential exposure
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
+.DS_Store
+
+# Logs
+*.log
+logs/
 
 # Security - Never commit real credentials
 **/secrets.*
@@ -28,6 +34,18 @@ artifacts/jenkins-mcp-server-*
 **/*secret*
 **/*credential*
 **/*password*
+
+# Node modules (if any)
+node_modules/
+
+# OS generated files
+Thumbs.db
+.DS_Store
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
 **/*token*
 **/*key*
 **/*private*

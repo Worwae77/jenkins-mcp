@@ -1220,36 +1220,50 @@ async function main() {
 
   logger.info("Starting Jenkins MCP Server...");
 
-  const decoder = new TextDecoder();
   const encoder = new TextEncoder();
 
   try {
-    // Read from stdin line by line
-    for await (const chunk of Deno.stdin.readable) {
-      const text = decoder.decode(chunk).trim();
-      if (!text) continue;
+    // Read from stdin line by line properly
+    const reader = Deno.stdin.readable.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
 
-      try {
-        const request: MCPRequest = JSON.parse(text);
-        const response = await handleRequest(request);
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-        // Write response to stdout
-        const responseText = JSON.stringify(response);
-        await Deno.stdout.write(encoder.encode(responseText + "\n"));
-      } catch (parseError) {
-        logger.error("Failed to parse request:", parseError);
-        // Send error response if we can extract an ID
-        const errorResponse = {
-          jsonrpc: "2.0",
-          id: null,
-          error: {
-            code: -32700,
-            message: "Parse error",
-          },
-        };
-        await Deno.stdout.write(
-          encoder.encode(JSON.stringify(errorResponse) + "\n"),
-        );
+      buffer += decoder.decode(value, { stream: true });
+
+      // Process complete lines
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || ""; // Keep incomplete line in buffer
+
+      for (const line of lines) {
+        const text = line.trim();
+        if (!text) continue;
+
+        try {
+          const request: MCPRequest = JSON.parse(text);
+          const response = await handleRequest(request);
+
+          // Write response to stdout
+          const responseText = JSON.stringify(response);
+          await Deno.stdout.write(encoder.encode(responseText + "\n"));
+        } catch (parseError) {
+          logger.error("Failed to parse request:", parseError);
+          // Send error response if we can extract an ID
+          const errorResponse = {
+            jsonrpc: "2.0",
+            id: null,
+            error: {
+              code: -32700,
+              message: "Parse error",
+            },
+          };
+          await Deno.stdout.write(
+            encoder.encode(JSON.stringify(errorResponse) + "\n"),
+          );
+        }
       }
     }
   } catch (error) {
