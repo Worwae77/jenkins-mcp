@@ -145,11 +145,8 @@ docker-build: ## Build Docker image for local development
 
 docker-build-ci: ## Build Docker image for CI/CD (no SSL bypass)
 	@echo "$(GREEN)Building Docker image for CI/CD...$(NC)"
-	@if [[ "${GITHUB_REF}" == refs/tags/* ]]; then \
-		DOCKER_VERSION=$${GITHUB_REF#refs/tags/v}; \
-	else \
-		DOCKER_VERSION="0.0.0-dev"; \
-	fi; \
+	@# Extract version from deno.json (more reliable than version.ts)
+	@DOCKER_VERSION=$$(grep -o '"version":\s*"[^"]*"' deno.json | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+\(-[a-zA-Z0-9]*\)\?' || echo "0.0.0-dev"); \
 	echo "Building with version: $$DOCKER_VERSION"; \
 	docker build --build-arg VERSION=$$DOCKER_VERSION -t jenkins-mcp-server:$$DOCKER_VERSION .; \
 	docker tag jenkins-mcp-server:$$DOCKER_VERSION jenkins-mcp-server:latest; \
